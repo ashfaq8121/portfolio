@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BlogCard from "../components/BlogCard.astro";
-import ProjectCard from "../components/ProjectCard.astro";
 import { getCollection } from "astro:content";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -9,10 +8,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const recentPosts = (await getCollection("blog", ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 2);
-
-const featuredProjects = (await getCollection("projects"))
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
 ---
 
 <BaseLayout
@@ -53,36 +48,6 @@ const featuredProjects = (await getCollection("projects"))
         LinkedIn &nearr;
       </a>
     </aside>
-  </section>
-
-  <section class="container" aria-labelledby="featured-projects-title">
-    <div class="section-header">
-      <p class="hero-label">Selected work</p>
-      <h2 id="featured-projects-title">Featured Projects</h2>
-    </div>
-
-    <div class="project-grid">
-      {featuredProjects.map(({ id, data }) => (
-        <ProjectCard
-          slug={id}
-          title={data.title}
-          description={data.description}
-          tags={data.tags}
-          githubUrl={data.githubUrl}
-          liveUrl={data.liveUrl}
-          image={data.image}
-          screenshotAlt={data.screenshotAlt}
-          problem={data.problem}
-          approach={data.approach}
-          result={data.result}
-          nextTime={data.nextTime}
-        />
-      ))}
-    </div>
-
-    <div class="section-footer">
-      <a href={`${base}/projects`} class="btn btn-outline">View all projects</a>
-    </div>
   </section>
 
   {recentPosts.length > 0 && (
@@ -219,24 +184,6 @@ const featuredProjects = (await getCollection("projects"))
     border-radius: var(--radius-xl);
     margin-block: var(--space-8);
     padding: var(--space-8);
-  }
-
-  .project-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-  }
-
-  @media (min-width: 768px) {
-    .project-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .project-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
   }
 
   .blog-grid {
