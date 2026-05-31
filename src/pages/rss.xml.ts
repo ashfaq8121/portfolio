@@ -8,15 +8,14 @@ export async function GET(context: APIContext) {
   );
 
   return rss({
-    // REPLACE title and description with your real details
-    title: "Your Name — Blog",
-    description: "Writing about web development, engineering, and things I've learned.",
+    title: "Ashfaq ur Rahman — Blog",
+    description: "Writing about web development, data analysis, and things I've learned.",
     site: context.site!.toString(),
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.description,
       pubDate: post.data.pubDate,
-      link: `/blog/${post.slug}/`,
+      link: `/task/blog/${post.slug}/`,
     })),
     customData: `<language>en-us</language>`,
   });

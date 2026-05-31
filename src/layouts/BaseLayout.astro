@@ -48,7 +48,6 @@ const fullTitle = title === "Home"
       type={ogType}
     />
 
-    <!-- RSS autodiscovery -->
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -56,13 +55,8 @@ const fullTitle = title === "Home"
       href={`${base}/rss.xml`}
     />
 
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
 
-    <!--
-      Dark mode init: runs before paint to prevent flash.
-      Reads localStorage, falls back to system preference.
-    -->
     <script is:inline>
       (function () {
         const stored = localStorage.getItem("theme");

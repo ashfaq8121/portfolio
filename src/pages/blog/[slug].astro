@@ -13,14 +13,15 @@ interface Post {
   };
 }
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export function getStaticPaths() {
   const posts: Post[] = [
     {
       slug: "pandas-vs-sql-when-to-use-which",
       data: {
         title: "Pandas vs SQL: When to Use Which for Data Analysis",
-        description:
-          "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
+        description: "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
         pubDate: new Date("2026-05-28"),
         tags: ["Data Analysis", "Python", "SQL", "Performance"],
         minutesRead: 8,
@@ -30,8 +31,7 @@ export function getStaticPaths() {
       slug: "building-interactive-dashboards-astro",
       data: {
         title: "Building Interactive Dashboards with Astro and React Islands",
-        description:
-          "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
+        description: "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
         pubDate: new Date("2026-05-15"),
         tags: ["Web Dev", "Astro", "React", "Dashboards"],
         minutesRead: 12,
@@ -41,8 +41,7 @@ export function getStaticPaths() {
       slug: "web-scraping-ethical-guide",
       data: {
         title: "Ethical Web Scraping: A Developer's Guide to Respecting Robots.txt",
-        description:
-          "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
+        description: "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
         pubDate: new Date("2026-04-30"),
         tags: ["Web Dev", "Python", "Scraping", "Ethics"],
         minutesRead: 6,
@@ -52,8 +51,7 @@ export function getStaticPaths() {
       slug: "d3js-data-visualization-basics",
       data: {
         title: "D3.js Fundamentals: From Data to Visual Storytelling",
-        description:
-          "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
+        description: "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
         pubDate: new Date("2026-04-12"),
         tags: ["Data Analysis", "D3.js", "JavaScript", "Visualization"],
         minutesRead: 15,
@@ -63,8 +61,7 @@ export function getStaticPaths() {
       slug: "api-design-analytics-endpoints",
       data: {
         title: "Designing REST APIs for Analytics: Lessons from Real Projects",
-        description:
-          "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
+        description: "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
         pubDate: new Date("2026-03-22"),
         tags: ["Web Dev", "API Design", "Backend", "Performance"],
         minutesRead: 10,
@@ -74,8 +71,7 @@ export function getStaticPaths() {
       slug: "python-automate-excel-reports",
       data: {
         title: "Automating Excel Reports with Python and OpenPyXL",
-        description:
-          "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
+        description: "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
         pubDate: new Date("2026-03-05"),
         tags: ["Data Analysis", "Python", "Automation", "Excel"],
         minutesRead: 9,
@@ -85,8 +81,7 @@ export function getStaticPaths() {
       slug: "astro-content-collections-guide",
       data: {
         title: "Astro Content Collections: Type-Safe Blogging Without the Headache",
-        description:
-          "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
+        description: "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
         pubDate: new Date("2026-02-18"),
         tags: ["Web Dev", "Astro", "TypeScript", "CMS"],
         minutesRead: 7,
@@ -96,8 +91,7 @@ export function getStaticPaths() {
       slug: "exploratory-data-analysis-pipeline",
       data: {
         title: "My EDA Pipeline: Tools and Techniques for Understanding New Datasets",
-        description:
-          "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
+        description: "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
         pubDate: new Date("2026-02-01"),
         tags: ["Data Analysis", "Python", "EDA", "Jupyter"],
         minutesRead: 11,
@@ -119,7 +113,7 @@ const { post } = Astro.props;
     class="container"
     style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);"
   >
-    <a href="/task/blog/">← Back to Blog</a>
+    <a href={`${base}/blog/`}>← Back to Blog</a>
 
     <h1>{post.data.title}</h1>
     <p>{post.data.description}</p>
@@ -141,7 +135,7 @@ const { post } = Astro.props;
     </article>
 
     <hr />
-    <a href="/my-portfolio/">Home</a>
+    <a href={`${base}/`}>Home</a>
   </main>
 </BaseLayout>
 
