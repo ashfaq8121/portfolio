@@ -1,0 +1,275 @@
+---
+import ThemeToggle from "./ThemeToggle.astro";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const navLinks = [
+  { href: `${base}/`, label: "Home" },
+  { href: `${base}/about`, label: "About" },
+  { href: `${base}/projects`, label: "Projects" },
+  { href: `${base}/blog`, label: "Blog" },
+  { href: `${base}/contact`, label: "Contact" },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="site-header" role="banner">
+  <nav class="container nav-inner" aria-label="Main navigation">
+    <a href={`${base}/`} class="nav-logo" aria-label="Ashfaq ur Rahman — home">
+      Ashfaq ur Rahman
+    </a>
+
+    <ul class="nav-links" role="list">
+      {navLinks.map(({ href, label }) => {
+        const isActive =
+          href === `${base}/`
+            ? currentPath === `${base}/` || currentPath === `${base}`
+            : currentPath.startsWith(href);
+
+        return (
+          <li>
+            <a
+              href={href}
+              class={`nav-link ${isActive ? "nav-link--active" : ""}`}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {label}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+
+    <div class="nav-actions">
+      <ThemeToggle />
+      <button
+        class="nav-menu-btn"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label="Open navigation menu"
+        id="menu-btn"
+        type="button"
+      >
+        <span class="nav-menu-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div
+    class="mobile-menu"
+    id="mobile-menu"
+    aria-hidden="true"
+    role="navigation"
+    aria-label="Mobile navigation"
+  >
+    <ul role="list">
+      {navLinks.map(({ href, label }) => {
+        const isActive =
+          href === `${base}/`
+            ? currentPath === `${base}/` || currentPath === `${base}`
+            : currentPath.startsWith(href);
+
+        return (
+          <li>
+            <a
+              href={href}
+              class={`mobile-nav-link ${isActive ? "mobile-nav-link--active" : ""}`}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {label}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: var(--nav-height);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color var(--transition-slow);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: color var(--transition-fast);
+  }
+
+  .nav-logo:hover {
+    color: var(--color-accent);
+  }
+
+  .nav-links {
+    display: none;
+    gap: var(--space-1);
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    .nav-links {
+      display: flex;
+    }
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .nav-link:hover,
+  .nav-link--active {
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+  }
+
+  .nav-link--active {
+    color: var(--color-accent);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .nav-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    transition: background-color var(--transition-fast);
+  }
+
+  .nav-menu-btn:hover {
+    background: var(--color-bg-alt);
+  }
+
+  @media (min-width: 768px) {
+    .nav-menu-btn {
+      display: none;
+    }
+  }
+
+  .nav-menu-icon,
+  .nav-menu-icon::before,
+  .nav-menu-icon::after {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 1px;
+    transition: transform var(--transition-base), opacity var(--transition-base);
+  }
+
+  .nav-menu-icon::before,
+  .nav-menu-icon::after {
+    content: "";
+    margin-top: 5px;
+  }
+
+  [aria-expanded="true"] .nav-menu-icon {
+    background: transparent;
+  }
+
+  [aria-expanded="true"] .nav-menu-icon::before {
+    transform: rotate(45deg) translate(4px, 4px);
+  }
+
+  [aria-expanded="true"] .nav-menu-icon::after {
+    transform: rotate(-45deg) translate(4px, -4px);
+  }
+
+  .mobile-menu {
+    display: none;
+    position: absolute;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .mobile-menu[aria-hidden="false"] {
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+
+  .mobile-nav-link {
+    display: block;
+    padding: var(--space-3) var(--space-2);
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border);
+    transition: color var(--transition-fast);
+  }
+
+  .mobile-nav-link:last-of-type {
+    border-bottom: none;
+  }
+
+  .mobile-nav-link:hover,
+  .mobile-nav-link--active {
+    color: var(--color-accent);
+  }
+</style>
+
+<script>
+  const btn = document.getElementById("menu-btn");
+  const menu = document.getElementById("mobile-menu");
+
+  btn?.addEventListener("click", () => {
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", String(!expanded));
+    menu?.setAttribute("aria-hidden", String(expanded));
+    btn.setAttribute(
+      "aria-label",
+      expanded ? "Open navigation menu" : "Close navigation menu"
+    );
+  });
+
+  menu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      btn?.setAttribute("aria-expanded", "false");
+      menu?.setAttribute("aria-hidden", "true");
+    });
+  });
+</script>

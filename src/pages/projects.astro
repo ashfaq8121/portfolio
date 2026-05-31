@@ -1,0 +1,134 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const projects = [
+  {
+    slug: "nyc-taxi-analysis",
+    title: "NYC Taxi Data Analysis",
+    description:
+      "A Power BI dashboard that visualizes NYC Yellow Cab trip data to uncover patterns in fares, payments, locations, and trip distances.",
+    tags: ["Power BI", "Data Analysis", "Dashboard", "Visualization"],
+    githubUrl: "https://ashfaq8121.github.io/NYC-Yellow-Taxi-Data-Analysis/",
+    liveUrl: undefined,
+    image: `${base}/images/nyc taxi.png`,
+    screenshotAlt: "NYC Taxi Data Analysis dashboard showing trip distribution maps",
+    problem:
+      "NYC taxi operators have millions of trip records but no easy way to understand the patterns — like how trip distances change across months, how fares break down into base fare vs tips vs tolls, which pickup and dropoff locations are busiest, what payment methods passengers prefer, and how different rate codes (standard, airport, negotiated) are used.",
+    approach:
+      "I built a Power BI dashboard that visualizes NYC Yellow Cab data. I created a line chart showing trip distance trends by month, a donut chart breaking down the total fare into components like fare amount, tips, tolls, and airport fees, a location heatmap showing pickup vs dropoff patterns, a ratecode breakdown to see standard rides vs airport trips, and a payment type split showing credit card vs cash usage.",
+    result:
+      "The dashboard reveals that most trips are standard rate rides, credit cards are the dominant payment method, and trip distances peak in certain months. The fare breakdown shows tips and tolls make up a meaningful portion of driver income. These insights help operators understand demand patterns and driver earnings without writing a single line of code.",
+  },
+  {
+    slug: "sales-dashboard",
+    title: "E-Commerce Sales Dashboard",
+    description:
+      "An interactive Power BI dashboard that tracks product performance, state-wise sales, monthly profit trends, and payment breakdowns for an online store.",
+    tags: ["Power BI", "E-Commerce", "Dashboard", "Sales Analytics"],
+    githubUrl: "https://github.com/ashfaq8121/sales-dashboard",
+    liveUrl: undefined,
+    image: `${base}/images/sales-dashboard.png`,
+    screenshotAlt: "Sales dashboard showing revenue trend charts and KPI cards",
+    problem:
+      "A small e-commerce business had sales data scattered across multiple sources — orders, payments, product categories, state-wise sales. The owner couldn't easily see which products were selling best, which states were performing well, or how profit was trending month by month. Making decisions meant digging through spreadsheets manually.",
+    approach:
+      "I built an interactive Power BI dashboard that connects all the sales data in one place. I created KPI cards for total amount and profit, a bar chart showing amount vs profit by product category, a top 5 best sellers list, a donut chart breaking down orders by category, state-wise performance bars, monthly profit trends, and a payment mode breakdown. The owner can filter by quarter and state to drill down into specific periods or regions.",
+    result:
+      "The business owner can now see at a glance that Electronics and Fashion are the top categories, which 5 products are driving the most sales, and which states need more attention. The quarterly filter lets them compare Q1 vs Q4 performance instantly. What used to take hours of spreadsheet work now takes seconds.",
+  },
+  {
+    slug: "dental-clinic-management",
+    title: "Dental Clinic Booking Website",
+    description:
+      "A static website for a dental clinic where patients can book appointments, and the doctor gets notified instantly via email and WhatsApp.",
+    tags: ["HTML", "CSS", "JavaScript", "Formspree"],
+    githubUrl: "https://ashfaq8121.github.io/Dental-Care-Booking-System/",
+    liveUrl: undefined,
+    image: `${base}/images/dental.jpg`,
+    screenshotAlt: "Dental clinic website showing patient appointment booking form",
+    problem:
+      "A small dental clinic in Khammam had no online presence at all. Patients had to call during office hours to book appointments, which led to missed calls, double-bookings, and no-shows. The clinic also had no way to show their services, pricing, or doctor credentials to potential patients searching online.",
+    approach:
+      "I built a simple, clean static website using just HTML, CSS, and a bit of JavaScript. The site has a booking form connected to Formspree — when someone fills it out, the doctor gets an email instantly. I also added a WhatsApp button that lets patients message the clinic directly with one click. I included all the treatments they offer with estimated prices, patient reviews, and the doctor's profile so people can learn about the clinic before visiting.",
+    result:
+      "The clinic now has a 24/7 online presence. Patients can book appointments anytime through the form or WhatsApp, the doctor gets email notifications for every booking, and the WhatsApp link cut down on back-and-forth calls for simple questions. The site also helps with local SEO — people searching 'dentist in Khammam' can now find the clinic online.",
+  },
+];
+---
+
+<BaseLayout
+  title="Projects"
+  description="Case studies of projects I've built — problems, approaches, and results."
+>
+  <div
+    class="container"
+    style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);"
+  >
+    <header class="page-header">
+      <h1>Projects</h1>
+      <p class="page-lead">
+        Real projects with honest write-ups. Each one covers the problem I was
+        solving, how I approached it, and what came out the other side.
+      </p>
+    </header>
+
+    <div class="projects-grid">
+      {projects.map((project) => (
+        <ProjectCard
+          slug={project.slug}
+          title={project.title}
+          description={project.description}
+          tags={project.tags}
+          githubUrl={project.githubUrl}
+          liveUrl={project.liveUrl}
+          image={project.image}
+          screenshotAlt={project.screenshotAlt}
+          problem={project.problem}
+          approach={project.approach}
+          result={project.result}
+          nextTime={project.nextTime}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-header {
+    margin-bottom: var(--space-16);
+    max-width: 52rem;
+  }
+
+  .page-header h1 {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .page-lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  @media (min-width: 768px) {
+    .projects-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .projects-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

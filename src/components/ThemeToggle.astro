@@ -1,0 +1,90 @@
+---
+// ThemeToggle.astro — manual dark/light mode toggle
+---
+
+<button
+  class="theme-toggle"
+  id="theme-toggle"
+  aria-label="Switch to dark mode"
+  title="Toggle color theme"
+>
+  <!-- Sun icon (shown in dark mode) -->
+  <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    aria-hidden="true">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+  </svg>
+
+  <!-- Moon icon (shown in light mode) -->
+  <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    aria-hidden="true">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .theme-toggle:hover {
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+  }
+
+  /* Show/hide icons based on current theme */
+  :root[data-theme="dark"] .icon-moon { display: none; }
+  :root[data-theme="dark"] .icon-sun  { display: block; }
+  :root[data-theme="light"] .icon-sun  { display: none; }
+  :root[data-theme="light"] .icon-moon { display: block; }
+
+  /* Default: respect system */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .icon-moon { display: none; }
+    :root:not([data-theme="light"]) .icon-sun  { display: block; }
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .icon-sun  { display: none; }
+    :root:not([data-theme="dark"]) .icon-moon { display: block; }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById("theme-toggle");
+  const html = document.documentElement;
+
+  function getTheme(): "light" | "dark" {
+    return (html.getAttribute("data-theme") as "light" | "dark") ?? "light";
+  }
+
+  function setTheme(theme: "light" | "dark") {
+    html.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    toggle?.setAttribute(
+      "aria-label",
+      theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+    );
+  }
+
+  toggle?.addEventListener("click", () => {
+    setTheme(getTheme() === "dark" ? "light" : "dark");
+  });
+
+  // Set correct aria-label on init
+  const current = getTheme();
+  toggle?.setAttribute(
+    "aria-label",
+    current === "dark" ? "Switch to light mode" : "Switch to dark mode"
+  );
+</script>

@@ -1,0 +1,83 @@
+---
+import "../styles/variables.css";
+import "../styles/reset.css";
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import SkipLink from "../components/SkipLink.astro";
+import OgMeta from "../components/OgMeta.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+}
+
+const {
+  title,
+  description,
+  ogImage = "/og-default.png",
+  ogType = "website",
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const fullTitle = title === "Home"
+  ? "Ashfaq ur Rahman — Developer & Data Analyst"
+  : `${title} — Ashfaq ur Rahman`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <OgMeta
+      title={fullTitle}
+      description={description}
+      image={ogImage}
+      url={canonicalUrl.toString()}
+      type={ogType}
+    />
+
+    <!-- RSS autodiscovery -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Ashfaq ur Rahman — Blog"
+      href={`${base}/rss.xml`}
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+
+    <!--
+      Dark mode init: runs before paint to prevent flash.
+      Reads localStorage, falls back to system preference.
+    -->
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = stored || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <SkipLink />
+    <Nav />
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

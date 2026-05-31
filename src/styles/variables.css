@@ -1,0 +1,151 @@
+/*
+  variables.css
+  All design tokens live here. Swap these values to retheme the entire site.
+*/
+
+:root {
+  /* --- Typography --- */
+  --font-sans: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-display: "DM Serif Display", Georgia, serif;
+
+  /* --- Font sizes (fluid clamp scale) --- */
+  --text-xs: clamp(0.75rem, 1.5vw, 0.8125rem);
+  --text-sm: clamp(0.875rem, 2vw, 0.9375rem);
+  --text-base: clamp(1rem, 2.5vw, 1.0625rem);
+  --text-lg: clamp(1.125rem, 3vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 3.5vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 4vw, 2rem);
+  --text-3xl: clamp(2rem, 5vw, 2.75rem);
+  --text-4xl: clamp(2.5rem, 7vw, 3.75rem);
+
+  /* --- Spacing --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* --- Layout --- */
+  --max-width: 72rem;
+  --content-width: 48rem;
+  --nav-height: 4rem;
+
+  /* --- Border radius --- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.25rem;
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* --- Light mode colors --- */
+  --color-bg: #f9f7f4;
+  --color-bg-alt: #f0ede8;
+  --color-surface: #ffffff;
+  --color-surface-raised: #faf8f6;
+  --color-border: #e2ddd8;
+  --color-border-strong: #c8c2bb;
+
+  --color-text: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #a8a29e;
+
+  --color-accent: #c2410c;       /* warm rust — the primary accent */
+  --color-accent-hover: #9a3412;
+  --color-accent-light: #fff7ed;
+  --color-accent-border: #fed7aa;
+
+  --color-link: #c2410c;
+  --color-link-hover: #9a3412;
+
+  --color-success: #16a34a;
+  --color-success-light: #f0fdf4;
+  --color-error: #dc2626;
+  --color-error-light: #fef2f2;
+
+  --color-code-bg: #f4f0ed;
+  --color-code-text: #44403c;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px 0 rgb(28 25 23 / 0.06);
+  --shadow-md: 0 4px 12px 0 rgb(28 25 23 / 0.08), 0 1px 3px 0 rgb(28 25 23 / 0.04);
+  --shadow-lg: 0 12px 28px 0 rgb(28 25 23 / 0.10), 0 4px 8px 0 rgb(28 25 23 / 0.06);
+}
+
+/* --- Dark mode overrides --- */
+[data-theme="dark"] {
+  --color-bg: #141210;
+  --color-bg-alt: #1c1917;
+  --color-surface: #1f1c1a;
+  --color-surface-raised: #262220;
+  --color-border: #2c2825;
+  --color-border-strong: #3d3835;
+
+  --color-text: #f5f0eb;
+  --color-text-secondary: #a8a29e;
+  --color-text-muted: #57534e;
+
+  --color-accent: #f97316;
+  --color-accent-hover: #fb923c;
+  --color-accent-light: #1c1008;
+  --color-accent-border: #431407;
+
+  --color-link: #f97316;
+  --color-link-hover: #fb923c;
+
+  --color-success: #22c55e;
+  --color-success-light: #052e16;
+  --color-error: #ef4444;
+  --color-error-light: #1f0808;
+
+  --color-code-bg: #1c1917;
+  --color-code-text: #d6d3d1;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.35), 0 1px 3px 0 rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 12px 28px 0 rgb(0 0 0 / 0.4), 0 4px 8px 0 rgb(0 0 0 / 0.25);
+}
+
+/* Auto dark mode when no JS / no preference set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #141210;
+    --color-bg-alt: #1c1917;
+    --color-surface: #1f1c1a;
+    --color-surface-raised: #262220;
+    --color-border: #2c2825;
+    --color-border-strong: #3d3835;
+
+    --color-text: #f5f0eb;
+    --color-text-secondary: #a8a29e;
+    --color-text-muted: #57534e;
+
+    --color-accent: #f97316;
+    --color-accent-hover: #fb923c;
+    --color-accent-light: #1c1008;
+    --color-accent-border: #431407;
+
+    --color-link: #f97316;
+    --color-link-hover: #fb923c;
+
+    --color-success: #22c55e;
+    --color-success-light: #052e16;
+    --color-error: #ef4444;
+    --color-error-light: #1f0808;
+
+    --color-code-bg: #1c1917;
+    --color-code-text: #d6d3d1;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.35), 0 1px 3px 0 rgb(0 0 0 / 0.2);
+    --shadow-lg: 0 12px 28px 0 rgb(0 0 0 / 0.4), 0 4px 8px 0 rgb(0 0 0 / 0.25);
+  }
+}

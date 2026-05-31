@@ -1,0 +1,114 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  tags?: string[];
+  ogImage?: string;
+  minutesRead?: number;
+}
+
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  tags = [],
+  ogImage,
+  minutesRead,
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const formattedPub = pubDate.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const formattedUpdated = updatedDate?.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+---
+
+<BaseLayout title={title} description={description} ogImage={ogImage} ogType="article">
+  <article class="container" style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);">
+    <header class="blog-post-header content-width">
+      <div class="blog-post-meta">
+        <time datetime={pubDate.toISOString()}>{formattedPub}</time>
+        {minutesRead && <span>·</span>}
+        {minutesRead && <span>{minutesRead} min read</span>}
+        {formattedUpdated && (
+          <span>· Updated {formattedUpdated}</span>
+        )}
+      </div>
+
+      <h1 class="blog-post-title">{title}</h1>
+      <p class="blog-post-description">{description}</p>
+
+      {tags.length > 0 && (
+        <div class="blog-post-tags" aria-label="Post tags">
+          {tags.map((tag) => (
+            <span class="tag">{tag}</span>
+          ))}
+        </div>
+      )}
+    </header>
+
+    <hr class="divider" style="max-width: var(--content-width); margin-inline: auto;" />
+
+    <div class="prose content-width">
+      <slot />
+    </div>
+
+    <div class="blog-post-footer content-width">
+      <a href={`${base}/blog`} class="btn btn-ghost">&larr; Back to blog</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .blog-post-header {
+    margin-bottom: var(--space-8);
+  }
+
+  .blog-post-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+    font-family: var(--font-sans);
+  }
+
+  .blog-post-title {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-4);
+    line-height: 1.1;
+  }
+
+  .blog-post-description {
+    font-size: var(--text-xl);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-6);
+  }
+
+  .blog-post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .blog-post-footer {
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-border);
+  }
+</style>

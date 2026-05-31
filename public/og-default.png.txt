@@ -1,0 +1,14 @@
+OG_IMAGE_PLACEHOLDER
+
+Replace this file with a real og-default.png (1200x630px).
+
+Tools you can use to generate one:
+- Figma (free) — design it, export as PNG
+- https://og-playground.vercel.app/
+- Any image editor — plain colored background with your name and tagline works fine
+
+Requirements:
+- Dimensions: 1200 x 630 pixels
+- Format: PNG or JPG
+- File size: under 200KB ideally
+- Content: your name, tagline, and site URL at minimum

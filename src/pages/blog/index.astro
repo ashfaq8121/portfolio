@@ -1,0 +1,284 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogCard from "../../components/BlogCard.astro";
+
+interface Post {
+  slug: string;
+  data: {
+    title: string;
+    description: string;
+    pubDate: Date;
+    tags: string[];
+    minutesRead: number;
+    draft?: boolean;
+  };
+}
+
+
+const posts: Post[] = [
+  {
+    slug: "pandas-vs-sql-when-to-use-which",
+    data: {
+      title: "Pandas vs SQL: When to Use Which for Data Analysis",
+      description: "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
+      pubDate: new Date("2026-05-28"),
+      tags: ["Data Analysis", "Python", "SQL", "Performance"],
+      minutesRead: 8,
+    },
+  },
+  {
+    slug: "building-interactive-dashboards-astro",
+    data: {
+      title: "Building Interactive Dashboards with Astro and React Islands",
+      description: "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
+      pubDate: new Date("2026-05-15"),
+      tags: ["Web Dev", "Astro", "React", "Dashboards"],
+      minutesRead: 12,
+    },
+  },
+  {
+    slug: "web-scraping-ethical-guide",
+    data: {
+      title: "Ethical Web Scraping: A Developer's Guide to Respecting Robots.txt",
+      description: "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
+      pubDate: new Date("2026-04-30"),
+      tags: ["Web Dev", "Python", "Scraping", "Ethics"],
+      minutesRead: 6,
+    },
+  },
+  {
+    slug: "d3js-data-visualization-basics",
+    data: {
+      title: "D3.js Fundamentals: From Data to Visual Storytelling",
+      description: "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
+      pubDate: new Date("2026-04-12"),
+      tags: ["Data Analysis", "D3.js", "JavaScript", "Visualization"],
+      minutesRead: 15,
+    },
+  },
+  {
+    slug: "api-design-analytics-endpoints",
+    data: {
+      title: "Designing REST APIs for Analytics: Lessons from Real Projects",
+      description: "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
+      pubDate: new Date("2026-03-22"),
+      tags: ["Web Dev", "API Design", "Backend", "Performance"],
+      minutesRead: 10,
+    },
+  },
+  {
+    slug: "python-automate-excel-reports",
+    data: {
+      title: "Automating Excel Reports with Python and OpenPyXL",
+      description: "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
+      pubDate: new Date("2026-03-05"),
+      tags: ["Data Analysis", "Python", "Automation", "Excel"],
+      minutesRead: 9,
+    },
+  },
+  {
+    slug: "astro-content-collections-guide",
+    data: {
+      title: "Astro Content Collections: Type-Safe Blogging Without the Headache",
+      description: "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
+      pubDate: new Date("2026-02-18"),
+      tags: ["Web Dev", "Astro", "TypeScript", "CMS"],
+      minutesRead: 7,
+    },
+  },
+  {
+    slug: "exploratory-data-analysis-pipeline",
+    data: {
+      title: "My EDA Pipeline: Tools and Techniques for Understanding New Datasets",
+      description: "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
+      pubDate: new Date("2026-02-01"),
+      tags: ["Data Analysis", "Python", "EDA", "Jupyter"],
+      minutesRead: 11,
+    },
+  },
+];
+
+const publishedPosts = posts
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
+---
+
+<BaseLayout
+  title="Blog — Web Dev & Data Analysis"
+  description="Writing about web development, data analysis, and the intersection of engineering and insights."
+>
+  <div
+    class="container"
+    style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);"
+  >
+    <header class="page-header">
+      <h1>Blog</h1>
+      <p class="page-lead">
+        Thoughts on building for the web and making sense of data.
+        Engineering decisions, analysis techniques, and lessons learned.
+      </p>
+
+      <a href="/rss.xml" class="rss-link" aria-label="Subscribe via RSS">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/>
+        </svg>
+        Subscribe via RSS
+      </a>
+    </header>
+
+    {allTags.length > 0 && (
+      <div class="tag-filter" aria-label="Filter posts by tag">
+        <span class="tag-label">Topics:</span>
+        <div class="tag-list">
+          <button class="tag-btn active" data-filter="all" type="button">All</button>
+          {allTags.map((tag) => (
+            <button class="tag-btn" data-filter={tag} type="button">{tag}</button>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {publishedPosts.length === 0 ? (
+      <p class="empty-state">No posts yet — check back soon.</p>
+    ) : (
+      <div class="blog-grid" id="blog-grid">
+        {publishedPosts.map((post) => (
+          <div data-tags={post.data.tags.join(",")}>
+            <BlogCard
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              slug={post.slug}
+              tags={post.data.tags}
+              minutesRead={post.data.minutesRead}
+            />
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll('.tag-btn');
+  const cards = document.querySelectorAll('.blog-grid > div');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      cards.forEach((card) => {
+        const tags = card.getAttribute('data-tags') || '';
+
+        if (filter === 'all') {
+          card.style.display = '';
+          return;
+        }
+
+        card.style.display = tags.includes(filter) ? '' : 'none';
+      });
+    });
+  });
+</script>
+
+<style>
+  .page-header {
+    margin-bottom: var(--space-12);
+    max-width: 48rem;
+  }
+
+  .page-header h1 {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .page-lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0 0 var(--space-4);
+    max-width: 55ch;
+  }
+
+  .rss-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .rss-link:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .tag-filter {
+    margin-bottom: var(--space-10);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .tag-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-right: var(--space-2);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tag-btn {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .tag-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .tag-btn.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+  }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    max-width: 52rem;
+  }
+
+  @media (min-width: 768px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .empty-state {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    padding-block: var(--space-16);
+  }
+</style>

@@ -1,0 +1,259 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BlogCard from "../components/BlogCard.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const recentPosts = (await getCollection("blog", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 2);
+
+const featuredProjects = (await getCollection("projects"))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+---
+
+<BaseLayout
+  title="Home"
+  description="Ashfaq Ur Rahman is a recent Computer Science Engineering graduate focused on web development, clean UI/UX, and data analysis."
+>
+  <section class="hero container" aria-label="Introduction">
+    <div class="hero-content">
+      <p class="hero-label">Hello, I'm</p>
+      <h1 class="hero-name">Ashfaq Ur Rahman</h1>
+      <p class="hero-desc">
+        I am a recent Computer Science Engineering graduate based in Khammam.
+        I build responsive web interfaces, create user-focused UI/UX,
+        and use data analysis to turn raw information into meaningful business insights.
+      </p>
+
+      <div class="hero-actions">
+        <a href={`${base}/projects`} class="btn btn-primary">See my work</a>
+        <a href={`${base}/contact`} class="btn btn-outline">Get in touch</a>
+      </div>
+    </div>
+
+    <aside class="hero-links" aria-label="Social links">
+      <a
+        href="https://github.com/ashfaq8121"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hero-social-link"
+      >
+        GitHub &nearr;
+      </a>
+      <a
+        href="https://linkedin.com/in/ashfaq-ur-rahman-54832027b"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hero-social-link"
+      >
+        LinkedIn &nearr;
+      </a>
+    </aside>
+  </section>
+
+  <section class="container" aria-labelledby="featured-projects-title">
+    <div class="section-header">
+      <p class="hero-label">Selected work</p>
+      <h2 id="featured-projects-title">Featured Projects</h2>
+    </div>
+
+    <div class="project-grid">
+      {featuredProjects.map(({ id, data }) => (
+        <ProjectCard
+          slug={id}
+          title={data.title}
+          description={data.description}
+          tags={data.tags}
+          githubUrl={data.githubUrl}
+          liveUrl={data.liveUrl}
+          image={data.image}
+          screenshotAlt={data.screenshotAlt}
+          problem={data.problem}
+          approach={data.approach}
+          result={data.result}
+          nextTime={data.nextTime}
+        />
+      ))}
+    </div>
+
+    <div class="section-footer">
+      <a href={`${base}/projects`} class="btn btn-outline">View all projects</a>
+    </div>
+  </section>
+
+  {recentPosts.length > 0 && (
+    <section class="container section--alt" aria-labelledby="recent-posts-title">
+      <div class="section-header">
+        <p class="hero-label">Latest writing</p>
+        <h2 id="recent-posts-title">Recent Posts</h2>
+      </div>
+
+      <div class="blog-grid">
+        {recentPosts.map((post) => (
+          <BlogCard post={post} />
+        ))}
+      </div>
+
+      <div class="section-footer">
+        <a href={`${base}/blog`} class="btn btn-outline">Read the blog</a>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .hero {
+    min-height: calc(100dvh - var(--nav-height));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-8);
+    padding-top: calc(var(--nav-height) + var(--space-10));
+    padding-bottom: var(--space-12);
+  }
+
+  @media (min-width: 768px) {
+    .hero {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-12);
+      padding-top: calc(var(--nav-height) + var(--space-16));
+      padding-bottom: var(--space-16);
+    }
+  }
+
+  .hero-content {
+    max-width: 42rem;
+    width: 100%;
+  }
+
+  .hero-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-3);
+  }
+
+  .hero-name {
+    font-size: clamp(2.4rem, 11vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-5);
+    color: var(--color-text);
+    overflow-wrap: break-word;
+  }
+
+  .hero-desc {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+    max-width: 44ch;
+    margin-bottom: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .hero-desc {
+      font-size: var(--text-lg);
+      margin-bottom: var(--space-8);
+    }
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  @media (min-width: 480px) {
+    .hero-actions .btn {
+      width: auto;
+    }
+  }
+
+  .hero-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .hero-links {
+      width: auto;
+      align-items: flex-end;
+    }
+  }
+
+  .hero-social-link {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .hero-social-link:hover {
+    color: var(--color-accent);
+  }
+
+  .section-header {
+    margin-bottom: var(--space-6);
+  }
+
+  .section--alt {
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-xl);
+    margin-block: var(--space-8);
+    padding: var(--space-8);
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .project-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .project-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .section-footer {
+    margin-top: var(--space-8);
+    display: flex;
+    justify-content: flex-start;
+  }
+</style>

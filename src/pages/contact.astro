@@ -1,0 +1,326 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch — I'm open to work opportunities, collaborations, and interesting conversations."
+>
+  <div class="container contact-container">
+    <div class="contact-layout">
+
+      <!-- ── Info ────────────────────────────────────────────── -->
+      <div class="contact-info">
+        <h1>Get in touch</h1>
+        <p>
+          I'm currently looking for junior software engineering roles.
+          If you're hiring, have a project to talk about, or just want
+          to say hello — drop me a message.
+        </p>
+        <p>
+          I usually reply within a day or two.
+        </p>
+
+        <div class="contact-links">
+          <a
+            href="https://github.com/ashfaq8121"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-link"
+          >
+            GitHub
+          </a>
+          <a
+            href="https://linkedin.com/in/ashfaq-ur-rahman-54832027b"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="contact-link"
+          >
+            LinkedIn
+          </a>
+          <a
+            href="mailto:urrahmanmohammadashfaq@gmail.com"
+            class="contact-link"
+          >
+            Email
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Form ────────────────────────────────────────────── -->
+      <div class="contact-form-wrap">
+        <!-- Success state -->
+        <div class="alert alert-success" id="form-success" hidden aria-live="polite" role="status">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <path d="m9 11 3 3L22 4"/>
+          </svg>
+          <div>
+            <strong>Message sent!</strong>
+            <p style="margin:0; font-size: var(--text-sm);">Thanks — I'll get back to you soon.</p>
+          </div>
+        </div>
+
+        <!-- Error state -->
+        <div class="alert alert-error" id="form-error" hidden aria-live="assertive" role="alert">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div>
+            <strong>Something went wrong</strong>
+            <p id="form-error-message" style="margin:0; font-size: var(--text-sm);">Please try again.</p>
+          </div>
+        </div>
+
+        <form
+          id="contact-form"
+          class="contact-form"
+          action="https://formspree.io/f/xbdbpvdq"
+          method="POST"
+          novalidate
+          aria-label="Contact form"
+        >
+          <!-- Name -->
+          <div class="form-group">
+            <label class="form-label" for="name">
+              Name <span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="form-input"
+              type="text"
+              id="name"
+              name="name"
+              autocomplete="name"
+              required
+              aria-required="true"
+              aria-describedby="name-error"
+            />
+            <span class="form-error" id="name-error" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="email">
+              Email <span class="required" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="form-input"
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              required
+              aria-required="true"
+              aria-describedby="email-error"
+            />
+            <span class="form-error" id="email-error" role="alert" aria-live="polite"></span>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group">
+            <label class="form-label" for="message">
+              Message <span class="required" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              class="form-textarea"
+              id="message"
+              name="message"
+              rows="6"
+              required
+              aria-required="true"
+              aria-describedby="message-error"
+            ></textarea>
+            <span class="form-error" id="message-error" role="alert" aria-live="polite"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
+            <span class="btn-text">Send message</span>
+            <span class="btn-spinner" aria-hidden="true" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              Sending…
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .contact-container {
+    padding-top: calc(var(--nav-height) + var(--space-16));
+    padding-bottom: var(--space-24);
+  }
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-16);
+    align-items: start;
+  }
+
+  @media (min-width: 768px) {
+    .contact-layout {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .contact-info h1 {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-6);
+    line-height: 1.1;
+  }
+
+  .contact-info p {
+    font-size: var(--text-base);
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    max-width: 38ch;
+    margin-bottom: var(--space-4);
+  }
+
+  .contact-links {
+    display: flex;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .contact-link {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .contact-link:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .contact-form-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .btn-submit {
+    align-self: flex-start;
+    min-width: 10rem;
+  }
+
+  .btn-spinner svg {
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+  const form = document.getElementById("contact-form") as HTMLFormElement;
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+  const btnText = submitBtn?.querySelector(".btn-text") as HTMLElement;
+  const btnSpinner = submitBtn?.querySelector(".btn-spinner") as HTMLElement;
+  const successEl = document.getElementById("form-success") as HTMLElement;
+  const errorEl = document.getElementById("form-error") as HTMLElement;
+  const errorMsg = document.getElementById("form-error-message") as HTMLElement;
+
+  function setFieldError(fieldId: string, message: string) {
+    const input = document.getElementById(fieldId) as HTMLInputElement | HTMLTextAreaElement;
+    const errorSpan = document.getElementById(`${fieldId}-error`) as HTMLElement;
+    if (input) input.setAttribute("aria-invalid", message ? "true" : "false");
+    if (errorSpan) errorSpan.textContent = message;
+  }
+
+  function clearErrors() {
+    ["name", "email", "message"].forEach((id) => setFieldError(id, ""));
+  }
+
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    btnText.hidden = loading;
+    btnSpinner.hidden = !loading;
+  }
+
+  function validateForm(data: { name: string; email: string; message: string }): Record<string, string> {
+    const errors: Record<string, string> = {};
+
+    if (!data.name || data.name.trim().length < 2) {
+      errors.name = "Please enter your name (at least 2 characters).";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!data.email || !emailRegex.test(data.email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!data.message || data.message.trim().length < 10) {
+      errors.message = "Please enter a message (at least 10 characters).";
+    }
+
+    return errors;
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearErrors();
+    successEl.hidden = true;
+    errorEl.hidden = true;
+
+    const data = {
+      name: (document.getElementById("name") as HTMLInputElement).value.trim(),
+      email: (document.getElementById("email") as HTMLInputElement).value.trim(),
+      message: (document.getElementById("message") as HTMLTextAreaElement).value.trim(),
+    };
+
+    const errors = validateForm(data);
+    if (Object.keys(errors).length > 0) {
+      Object.entries(errors).forEach(([field, msg]) => setFieldError(field, msg));
+      const firstError = Object.keys(errors)[0];
+      (document.getElementById(firstError) as HTMLElement)?.focus();
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: new FormData(form),
+      });
+
+      if (res.ok) {
+        form.reset();
+        successEl.hidden = false;
+        successEl.focus();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        errorMsg.textContent = body.error || "Something went wrong. Please try again.";
+        errorEl.hidden = false;
+        errorEl.focus();
+      }
+    } catch {
+      errorMsg.textContent = "Could not reach the server. Please check your connection and try again.";
+      errorEl.hidden = false;
+      errorEl.focus();
+    } finally {
+      setLoading(false);
+    }
+  });
+</script>

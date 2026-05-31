@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for doesn't exist."
+>
+  <div class="container not-found-container">
+    <div class="not-found-content">
+      <p class="not-found-code" aria-hidden="true">404</p>
+      <h1 class="not-found-title">Page not found</h1>
+      <p class="not-found-desc">
+        This page doesn't exist, or it might have moved. Here are some places
+        to go instead:
+      </p>
+      <nav class="not-found-links" aria-label="Helpful links">
+        <a href={`${base}/`} class="btn btn-primary">Go home</a>
+        <a href={`${base}/projects`} class="btn btn-ghost">See projects</a>
+        <a href={`${base}/blog`} class="btn btn-ghost">Read the blog</a>
+        <a href={`${base}/contact`} class="btn btn-ghost">Get in touch</a>
+      </nav>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found-container {
+    padding-top: calc(var(--nav-height) + var(--space-24));
+    padding-bottom: var(--space-24);
+    min-height: 80dvh;
+    display: flex;
+    align-items: center;
+  }
+
+  .not-found-content {
+    max-width: 36rem;
+  }
+
+  .not-found-code {
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 20vw, 10rem);
+    line-height: 1;
+    color: var(--color-border);
+    margin-bottom: var(--space-4);
+    user-select: none;
+  }
+
+  .not-found-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .not-found-desc {
+    font-size: var(--text-lg);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-8);
+    max-width: 42ch;
+  }
+
+  .not-found-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

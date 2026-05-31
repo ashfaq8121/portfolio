@@ -1,0 +1,167 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+interface Post {
+  slug: string;
+  data: {
+    title: string;
+    description: string;
+    pubDate: Date;
+    tags: string[];
+    minutesRead: number;
+    draft?: boolean;
+  };
+}
+
+export function getStaticPaths() {
+  const posts: Post[] = [
+    {
+      slug: "pandas-vs-sql-when-to-use-which",
+      data: {
+        title: "Pandas vs SQL: When to Use Which for Data Analysis",
+        description:
+          "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
+        pubDate: new Date("2026-05-28"),
+        tags: ["Data Analysis", "Python", "SQL", "Performance"],
+        minutesRead: 8,
+      },
+    },
+    {
+      slug: "building-interactive-dashboards-astro",
+      data: {
+        title: "Building Interactive Dashboards with Astro and React Islands",
+        description:
+          "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
+        pubDate: new Date("2026-05-15"),
+        tags: ["Web Dev", "Astro", "React", "Dashboards"],
+        minutesRead: 12,
+      },
+    },
+    {
+      slug: "web-scraping-ethical-guide",
+      data: {
+        title: "Ethical Web Scraping: A Developer's Guide to Respecting Robots.txt",
+        description:
+          "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
+        pubDate: new Date("2026-04-30"),
+        tags: ["Web Dev", "Python", "Scraping", "Ethics"],
+        minutesRead: 6,
+      },
+    },
+    {
+      slug: "d3js-data-visualization-basics",
+      data: {
+        title: "D3.js Fundamentals: From Data to Visual Storytelling",
+        description:
+          "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
+        pubDate: new Date("2026-04-12"),
+        tags: ["Data Analysis", "D3.js", "JavaScript", "Visualization"],
+        minutesRead: 15,
+      },
+    },
+    {
+      slug: "api-design-analytics-endpoints",
+      data: {
+        title: "Designing REST APIs for Analytics: Lessons from Real Projects",
+        description:
+          "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
+        pubDate: new Date("2026-03-22"),
+        tags: ["Web Dev", "API Design", "Backend", "Performance"],
+        minutesRead: 10,
+      },
+    },
+    {
+      slug: "python-automate-excel-reports",
+      data: {
+        title: "Automating Excel Reports with Python and OpenPyXL",
+        description:
+          "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
+        pubDate: new Date("2026-03-05"),
+        tags: ["Data Analysis", "Python", "Automation", "Excel"],
+        minutesRead: 9,
+      },
+    },
+    {
+      slug: "astro-content-collections-guide",
+      data: {
+        title: "Astro Content Collections: Type-Safe Blogging Without the Headache",
+        description:
+          "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
+        pubDate: new Date("2026-02-18"),
+        tags: ["Web Dev", "Astro", "TypeScript", "CMS"],
+        minutesRead: 7,
+      },
+    },
+    {
+      slug: "exploratory-data-analysis-pipeline",
+      data: {
+        title: "My EDA Pipeline: Tools and Techniques for Understanding New Datasets",
+        description:
+          "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
+        pubDate: new Date("2026-02-01"),
+        tags: ["Data Analysis", "Python", "EDA", "Jupyter"],
+        minutesRead: 11,
+      },
+    },
+  ];
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <main
+    class="container"
+    style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);"
+  >
+    <a href="/task/blog/">← Back to Blog</a>
+
+    <h1>{post.data.title}</h1>
+    <p>{post.data.description}</p>
+    <p>
+      <small>{post.data.pubDate.toDateString()} • {post.data.minutesRead} min read</small>
+    </p>
+
+    <hr />
+
+    <div class="tag-list">
+      {post.data.tags.map((tag) => (
+        <span class="tag">{tag}</span>
+      ))}
+    </div>
+
+    <article class="post-content">
+      <p>This is the full article page for <strong>{post.data.title}</strong>.</p>
+      <p>You can replace this text later with real blog content or Markdown content.</p>
+    </article>
+
+    <hr />
+    <a href="/my-portfolio/">Home</a>
+  </main>
+</BaseLayout>
+
+<style>
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0 2rem;
+  }
+
+  .tag {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: #f3f4f6;
+    font-size: 0.875rem;
+  }
+
+  .post-content {
+    max-width: 70ch;
+    line-height: 1.8;
+  }
+</style>

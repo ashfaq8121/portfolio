@@ -1,0 +1,231 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<BaseLayout
+  title="About"
+  description="Learn more about Ashfaq Ur Rahman, a recent Computer Science Engineering graduate focused on web development, clean UI/UX, and data-driven problem solving."
+>
+  <div class="container" style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);">
+    <div class="about-layout">
+
+      <main class="about-main">
+        <h1 class="about-title">About me</h1>
+
+        <div class="prose">
+          <p>
+            I'm Ashfaq Ur Rahman, a recent Computer Science Engineering graduate based in Khammam, India,
+            with an aggregate CGPA of 7.97. I'm passionate about building modern web experiences and using
+            data to solve real problems. My interests are centered around web development, clean and
+            user-focused UI/UX, and data analysis that helps people and businesses make better decisions.
+          </p>
+
+          <p>
+            I enjoy creating responsive websites using HTML, CSS, and JavaScript, with a strong focus on
+            clarity, usability, and maintainable structure. I like interfaces that are simple, professional,
+            and purposeful — not just visually clean, but also easy to use and accessible across devices.
+          </p>
+
+          <p>
+            Alongside frontend development, I have hands-on knowledge of Python for data analysis,
+            especially with Pandas and NumPy, as well as tools like Power BI, Excel, and SQL. I'm interested
+            in transforming raw data into meaningful insights, such as identifying which areas are lagging,
+            where performance can be improved, and which products, teams, or processes are generating more profit.
+          </p>
+
+          <h2>What I'm working on</h2>
+
+          <p>
+            Right now, I'm focused on strengthening my portfolio through practical projects that combine
+            software development and analytics. I've been working on projects related to resume analysis,
+            dashboards, and portfolio development, while also improving my problem-solving, project structure,
+            and deployment skills.
+          </p>
+
+          <p>
+            I'm actively looking for an opportunity where I can begin my career, contribute to real-world
+            products, and continue learning in a professional environment. I'm especially interested in
+            roles where I can apply both technical development skills and analytical thinking to create
+            useful, decision-driven solutions.
+          </p>
+
+          <h2>What I bring</h2>
+
+          <p>
+            I bring a combination of technical curiosity, responsibility, and a strong willingness to learn.
+            I like understanding a problem clearly before building a solution, and I try to keep my work
+            organized, practical, and focused on outcomes. Whether I'm designing a clean interface or
+            analyzing a dataset, I aim to create work that is clear, useful, and professional.
+          </p>
+
+          <p>
+            I also value continuous improvement. I'm always trying to sharpen my communication, improve the
+            quality of my projects, and learn tools that make me more effective as a developer and analyst.
+            My goal is to grow into a role where I can build impactful digital products and use data to support smart decisions.
+          </p>
+
+          <h2>Outside academics and work</h2>
+
+          <p>
+            Outside of projects and study, I enjoy exploring new technologies, improving my practical coding
+            skills, and learning how strong products are designed and built. I'm motivated by growth, real
+            problem-solving, and the idea of building a career where technology and analysis come together in a meaningful way.
+          </p>
+
+          <h2>How I work</h2>
+
+          <p>
+            I work best when I understand the goal clearly and can break the problem into smaller steps.
+            I believe good work comes from planning well, paying attention to detail, and staying open to feedback.
+          </p>
+
+          <p>
+            I'm dependable, adaptable, and committed to improving with every project I build. As a fresher,
+            I may still be growing in experience, but I bring sincerity, discipline, and the mindset to learn fast and contribute well.
+          </p>
+        </div>
+      </main>
+
+      <aside class="about-sidebar" aria-label="Skills and links">
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Skills</h2>
+          <ul class="skill-list" role="list">
+            <li>HTML</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+            <li>Responsive Web Design</li>
+            <li>Clean UI/UX Design</li>
+            <li>Python</li>
+            <li>Pandas</li>
+            <li>NumPy</li>
+            <li>Power BI</li>
+            <li>SQL</li>
+            <li>Excel</li>
+            <li>Git & GitHub</li>
+            <li>Data Analysis</li>
+            <li>Dashboard Building</li>
+            <li>Problem Solving</li>
+          </ul>
+        </div>
+
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Links</h2>
+          <ul class="link-list" role="list">
+            <li>
+              <a href="https://github.com/ashfaq8121" target="_blank" rel="noopener noreferrer">
+                GitHub &nearr;
+              </a>
+            </li>
+            <li>
+              <a href="https://linkedin.com/in/ashfaq-ur-rahman-54832027b" target="_blank" rel="noopener noreferrer">
+                LinkedIn &nearr;
+              </a>
+            </li>
+            <li>
+              <a href={`${base}/rss.xml`}>
+                RSS feed
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Currently focused on</h2>
+          <p class="sidebar-text">
+            Building portfolio projects, improving data analytics skills, and preparing for entry-level software and data roles.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-16);
+    align-items: start;
+  }
+
+  @media (min-width: 1024px) {
+    .about-layout {
+      grid-template-columns: 1fr 18rem;
+    }
+  }
+
+  .about-title {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-8);
+    line-height: 1.1;
+  }
+
+  .about-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .sidebar-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+  }
+
+  .sidebar-heading {
+    font-size: var(--text-xs);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .skill-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .skill-list li {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+    line-height: 1.2;
+  }
+
+  .skill-list li:last-child {
+    border-bottom: none;
+  }
+
+  .link-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .link-list a {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .link-list a:hover {
+    color: var(--color-accent-hover);
+  }
+
+  .sidebar-text {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+</style>
