@@ -21,7 +21,8 @@ const posts: Post[] = [
     slug: "pandas-vs-sql-when-to-use-which",
     data: {
       title: "Pandas vs SQL: When to Use Which for Data Analysis",
-      description: "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
+      description:
+        "A practical guide comparing Pandas and SQL for data manipulation. Learn when to stay in Python and when to push logic to the database for better performance.",
       pubDate: new Date("2026-05-28"),
       tags: ["Data Analysis", "Python", "SQL", "Performance"],
       minutesRead: 8,
@@ -31,7 +32,8 @@ const posts: Post[] = [
     slug: "building-interactive-dashboards-astro",
     data: {
       title: "Building Interactive Dashboards with Astro and React Islands",
-      description: "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
+      description:
+        "How to leverage Astro's partial hydration to build lightning-fast analytics dashboards without sacrificing interactivity where you need it.",
       pubDate: new Date("2026-05-15"),
       tags: ["Web Dev", "Astro", "React", "Dashboards"],
       minutesRead: 12,
@@ -41,7 +43,8 @@ const posts: Post[] = [
     slug: "web-scraping-ethical-guide",
     data: {
       title: "Ethical Web Scraping: A Developer's Guide to Respecting Robots.txt",
-      description: "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
+      description:
+        "Beyond the code: understanding rate limits, terms of service, and building scrapers that won't get you (or your IP) banned.",
       pubDate: new Date("2026-04-30"),
       tags: ["Web Dev", "Python", "Scraping", "Ethics"],
       minutesRead: 6,
@@ -51,7 +54,8 @@ const posts: Post[] = [
     slug: "d3js-data-visualization-basics",
     data: {
       title: "D3.js Fundamentals: From Data to Visual Storytelling",
-      description: "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
+      description:
+        "Stop fighting with D3. Learn the core pattern—selections, data binding, and scales—to build custom visualizations that actually make sense.",
       pubDate: new Date("2026-04-12"),
       tags: ["Data Analysis", "D3.js", "JavaScript", "Visualization"],
       minutesRead: 15,
@@ -61,7 +65,8 @@ const posts: Post[] = [
     slug: "api-design-analytics-endpoints",
     data: {
       title: "Designing REST APIs for Analytics: Lessons from Real Projects",
-      description: "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
+      description:
+        "Why your analytics endpoints are slow and how to fix them. Covering aggregation strategies, caching, and query parameter design.",
       pubDate: new Date("2026-03-22"),
       tags: ["Web Dev", "API Design", "Backend", "Performance"],
       minutesRead: 10,
@@ -71,7 +76,8 @@ const posts: Post[] = [
     slug: "python-automate-excel-reports",
     data: {
       title: "Automating Excel Reports with Python and OpenPyXL",
-      description: "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
+      description:
+        "Stop copy-pasting into Excel. Build automated reporting pipelines that generate formatted, chart-filled workbooks from your database.",
       pubDate: new Date("2026-03-05"),
       tags: ["Data Analysis", "Python", "Automation", "Excel"],
       minutesRead: 9,
@@ -81,7 +87,8 @@ const posts: Post[] = [
     slug: "astro-content-collections-guide",
     data: {
       title: "Astro Content Collections: Type-Safe Blogging Without the Headache",
-      description: "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
+      description:
+        "How I migrated from a CMS to Astro's built-in content collections and why the type safety and local markdown workflow won me over.",
       pubDate: new Date("2026-02-18"),
       tags: ["Web Dev", "Astro", "TypeScript", "CMS"],
       minutesRead: 7,
@@ -91,7 +98,8 @@ const posts: Post[] = [
     slug: "exploratory-data-analysis-pipeline",
     data: {
       title: "My EDA Pipeline: Tools and Techniques for Understanding New Datasets",
-      description: "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
+      description:
+        "The repeatable process I use to profile, clean, and visualize unfamiliar datasets before building models or dashboards.",
       pubDate: new Date("2026-02-01"),
       tags: ["Data Analysis", "Python", "EDA", "Jupyter"],
       minutesRead: 11,
@@ -110,10 +118,7 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
   title="Blog — Web Dev & Data Analysis"
   description="Writing about web development, data analysis, and the intersection of engineering and insights."
 >
-  <div
-    class="container"
-    style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);"
-  >
+  <div class="container blog-page">
     <header class="page-header">
       <h1>Blog</h1>
       <p class="page-lead">
@@ -146,7 +151,7 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
     ) : (
       <div class="blog-grid" id="blog-grid">
         {publishedPosts.map((post) => (
-          <div data-tags={post.data.tags.join(",")}>
+          <div class="blog-grid-item" data-tags={post.data.tags.join(",")}>
             <BlogCard
               title={post.data.title}
               description={post.data.description}
@@ -163,37 +168,49 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
 </BaseLayout>
 
 <script>
-  const buttons = document.querySelectorAll('.tag-btn');
-  const cards = document.querySelectorAll('.blog-grid > div');
+  const buttons = document.querySelectorAll(".tag-btn");
+  const cards = document.querySelectorAll(".blog-grid-item");
 
   buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const filter = btn.getAttribute('data-filter');
-      buttons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
+    btn.addEventListener("click", () => {
+      const filter = btn.getAttribute("data-filter");
+
+      buttons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
       cards.forEach((card) => {
-        const tags = card.getAttribute('data-tags') || '';
-        if (filter === 'all') { card.style.display = ''; return; }
-        card.style.display = tags.includes(filter) ? '' : 'none';
+        const tags = card.getAttribute("data-tags") || "";
+
+        if (filter === "all") {
+          card.style.display = "";
+          return;
+        }
+
+        card.style.display = tags.split(",").includes(filter) ? "" : "none";
       });
     });
   });
 </script>
 
 <style>
+  .blog-page {
+    padding-top: calc(var(--nav-height) + var(--space-16));
+    padding-bottom: var(--space-24);
+  }
+
   .page-header {
     margin-bottom: var(--space-12);
     max-width: 48rem;
   }
 
   .page-header h1 {
-    font-size: var(--text-4xl);
+    font-size: var(--text-3xl);
     margin-bottom: var(--space-4);
   }
 
   .page-lead {
     font-size: var(--text-lg);
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
     line-height: 1.6;
     margin: 0 0 var(--space-4);
     max-width: 55ch;
@@ -205,13 +222,13 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
     gap: var(--space-2);
     font-size: var(--text-sm);
     font-weight: 500;
-    color: var(--color-accent);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition: color var(--transition-interactive);
   }
 
   .rss-link:hover {
-    color: var(--color-accent-hover);
+    color: var(--color-primary-hover);
   }
 
   .tag-filter {
@@ -225,7 +242,7 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
   .tag-label {
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
     margin-right: var(--space-2);
   }
 
@@ -238,23 +255,25 @@ const allTags = [...new Set(publishedPosts.flatMap((p) => p.data.tags))].sort();
   .tag-btn {
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--color-border);
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     background: transparent;
-    color: var(--color-text-secondary);
+    color: var(--color-text-muted);
     font-size: var(--text-sm);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: color var(--transition-interactive),
+      border-color var(--transition-interactive),
+      background-color var(--transition-interactive);
   }
 
   .tag-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 
   .tag-btn.active {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: white;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
   }
 
   .blog-grid {
