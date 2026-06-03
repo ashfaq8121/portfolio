@@ -9,7 +9,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <div class="container contact-container">
     <div class="contact-layout">
 
-      <!-- ── Info ────────────────────────────────────────────── -->
+      <!-- ── Info ───────────────────────────────────────────── -->
       <div class="contact-info">
         <h1>Get in touch</h1>
         <p>
@@ -17,44 +17,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           If you're hiring, have a project to talk about, or just want
           to say hello — drop me a message.
         </p>
-        <p>
-          I usually reply within a day or two.
-        </p>
+        <p>I usually reply within a day or two.</p>
 
         <div class="contact-links">
-          <a
-            href="https://github.com/ashfaq8121"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="contact-link"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://linkedin.com/in/ashfaq-ur-rahman-54832027b"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="contact-link"
-          >
-            LinkedIn
-          </a>
-          <a
-            href="mailto:urrahmanmohammadashfaq@gmail.com"
-            class="contact-link"
-          >
-            Email
-          </a>
+          <a href="https://github.com/ashfaq8121" target="_blank" rel="noopener noreferrer" class="contact-link">GitHub</a>
+          <a href="https://linkedin.com/in/ashfaq-ur-rahman-54832027b" target="_blank" rel="noopener noreferrer" class="contact-link">LinkedIn</a>
+          <a href="mailto:urrahmanmohammadashfaq@gmail.com" class="contact-link">Email</a>
         </div>
       </div>
 
-      <!-- ── Form ────────────────────────────────────────────── -->
+      <!-- ── Form ───────────────────────────────────────────── -->
       <div class="contact-form-wrap">
-        <!-- Success state -->
+
+        <!-- Success banner -->
         <div class="alert alert-success" id="form-success" hidden aria-live="polite" role="status">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <path d="m9 11 3 3L22 4"/>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
           </svg>
           <div>
             <strong>Message sent!</strong>
@@ -62,12 +41,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </div>
         </div>
 
-        <!-- Error state -->
+        <!-- Error banner -->
         <div class="alert alert-error" id="form-error" hidden aria-live="assertive" role="alert">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           <div>
@@ -76,10 +54,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </div>
         </div>
 
+        <!--
+          action="/api/contact" → hits your Cloudflare Worker route.
+          The Worker lives in worker/src/api/contact.ts and is deployed
+          alongside your Astro static build via wrangler.toml.
+        -->
         <form
           id="contact-form"
           class="contact-form"
-          action="https://formspree.io/f/xbdbpvdq"
+          action="/api/contact"
           method="POST"
           novalidate
           aria-label="Contact form"
@@ -201,9 +184,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     transition: color var(--transition-fast);
   }
 
-  .contact-link:hover {
-    color: var(--color-accent-hover);
-  }
+  .contact-link:hover { color: var(--color-accent-hover); }
 
   .contact-form-wrap {
     display: flex;
@@ -217,108 +198,86 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     gap: var(--space-6);
   }
 
-  .btn-submit {
-    align-self: flex-start;
-    min-width: 10rem;
-  }
+  .btn-submit { align-self: flex-start; min-width: 10rem; }
 
-  .btn-spinner svg {
-    animation: spin 0.7s linear infinite;
-  }
+  .btn-spinner svg { animation: spin 0.7s linear infinite; }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-</style>
-
+  @keyframes spin { to { transform: rotate(360deg); } }
+  </style> 
 <script>
-  const form = document.getElementById("contact-form") as HTMLFormElement;
-  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
-  const btnText = submitBtn?.querySelector(".btn-text") as HTMLElement;
-  const btnSpinner = submitBtn?.querySelector(".btn-spinner") as HTMLElement;
-  const successEl = document.getElementById("form-success") as HTMLElement;
-  const errorEl = document.getElementById("form-error") as HTMLElement;
-  const errorMsg = document.getElementById("form-error-message") as HTMLElement;
+  const form = document.getElementById("contact-form");
+  const submitBtn = document.getElementById("submit-btn");
+  const btnText = submitBtn?.querySelector(".btn-text");
+  const btnSpinner = submitBtn?.querySelector(".btn-spinner");
+  const successEl = document.getElementById("form-success");
+  const errorEl = document.getElementById("form-error");
+  const errorMsg = document.getElementById("form-error-message");
 
-  function setFieldError(fieldId: string, message: string) {
-    const input = document.getElementById(fieldId) as HTMLInputElement | HTMLTextAreaElement;
-    const errorSpan = document.getElementById(`${fieldId}-error`) as HTMLElement;
+  function setFieldError(fieldId, message) {
+    const input = document.getElementById(fieldId);
+    const span = document.getElementById(`${fieldId}-error`);
     if (input) input.setAttribute("aria-invalid", message ? "true" : "false");
-    if (errorSpan) errorSpan.textContent = message;
+    if (span) span.textContent = message;
   }
 
   function clearErrors() {
     ["name", "email", "message"].forEach((id) => setFieldError(id, ""));
   }
 
-  function setLoading(loading: boolean) {
-    submitBtn.disabled = loading;
-    btnText.hidden = loading;
-    btnSpinner.hidden = !loading;
+  function setLoading(on) {
+    if (submitBtn) submitBtn.disabled = on;
+    if (btnText) btnText.hidden = on;
+    if (btnSpinner) btnSpinner.hidden = !on;
   }
 
-  function validateForm(data: { name: string; email: string; message: string }): Record<string, string> {
-    const errors: Record<string, string> = {};
-
-    if (!data.name || data.name.trim().length < 2) {
-      errors.name = "Please enter your name (at least 2 characters).";
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!data.email || !emailRegex.test(data.email)) {
-      errors.email = "Please enter a valid email address.";
-    }
-
-    if (!data.message || data.message.trim().length < 10) {
-      errors.message = "Please enter a message (at least 10 characters).";
-    }
-
+  function validate(data) {
+    const errors = {};
+    if (data.name.trim().length < 2) errors.name = "Please enter your name (at least 2 characters).";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.email = "Please enter a valid email address.";
+    if (data.message.trim().length < 10) errors.message = "Please enter a message (at least 10 characters).";
     return errors;
   }
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors();
-    successEl.hidden = true;
-    errorEl.hidden = true;
+    if (successEl) successEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
 
     const data = {
-      name: (document.getElementById("name") as HTMLInputElement).value.trim(),
-      email: (document.getElementById("email") as HTMLInputElement).value.trim(),
-      message: (document.getElementById("message") as HTMLTextAreaElement).value.trim(),
+      name: document.getElementById("name")?.value?.trim?.() || "",
+      email: document.getElementById("email")?.value?.trim?.() || "",
+      message: document.getElementById("message")?.value?.trim?.() || "",
     };
 
-    const errors = validateForm(data);
+    const errors = validate(data);
     if (Object.keys(errors).length > 0) {
       Object.entries(errors).forEach(([field, msg]) => setFieldError(field, msg));
-      const firstError = Object.keys(errors)[0];
-      (document.getElementById(firstError) as HTMLElement)?.focus();
+      document.getElementById(Object.keys(errors)[0])?.focus();
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch(form.action, {
+      const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { Accept: "application/json" },
-        body: new FormData(form),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
 
-      if (res.ok) {
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
         form.reset();
-        successEl.hidden = false;
-        successEl.focus();
+        if (successEl) successEl.hidden = false;
       } else {
-        const body = await res.json().catch(() => ({}));
-        errorMsg.textContent = body.error || "Something went wrong. Please try again.";
-        errorEl.hidden = false;
-        errorEl.focus();
+        if (errorMsg) errorMsg.textContent = body.error ?? "Something went wrong. Please try again.";
+        if (errorEl) errorEl.hidden = false;
       }
     } catch {
-      errorMsg.textContent = "Could not reach the server. Please check your connection and try again.";
-      errorEl.hidden = false;
-      errorEl.focus();
+      if (errorMsg) errorMsg.textContent = "Could not reach the server. Please check your connection.";
+      if (errorEl) errorEl.hidden = false;
     } finally {
       setLoading(false);
     }

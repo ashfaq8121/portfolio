@@ -22,11 +22,11 @@ const {
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title === "Home"
-  ? "Ashfaq ur Rahman — Developer & Data Analyst"
-  : `${title} — Ashfaq ur Rahman`;
+const fullTitle =
+  title === "Home"
+    ? "Ashfaq ur Rahman — Developer & Data Analyst"
+    : `${title} — Ashfaq ur Rahman`;
 ---
 
 <!doctype html>
@@ -36,6 +36,13 @@ const fullTitle = title === "Home"
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Ashfaq ur Rahman — Blog"
+      href={`${base}/rss.xml`}
+    />
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -48,15 +55,6 @@ const fullTitle = title === "Home"
       type={ogType}
     />
 
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="Ashfaq ur Rahman — Blog"
-      href={`${base}/rss.xml`}
-    />
-
-    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
-
     <script is:inline>
       (function () {
         const stored = localStorage.getItem("theme");
@@ -66,6 +64,7 @@ const fullTitle = title === "Home"
       })();
     </script>
   </head>
+
   <body>
     <SkipLink />
     <Nav />

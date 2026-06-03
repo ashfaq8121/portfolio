@@ -320,6 +320,10 @@ a:hover {
   align-items: flex-start;
 }
 
+.alert[hidden] {
+  display: none;
+}
+
 .alert-success {
   background: var(--color-success-light);
   border-color: var(--color-success);

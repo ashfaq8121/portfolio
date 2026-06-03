@@ -1,15 +1,15 @@
-name = "my-portfolio"
-main = "./dist/_worker.js"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
+name = "portfolio"
+compatibility_date = "2024-04-03"
 
-# Static assets are served from the dist directory
-assets = { directory = "./dist" }
-
-[[d1_databases]]
-binding = "DB"
-database_name = "portfolio-contacts"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+[assets]
+directory = "./dist"
 
 [vars]
-ENVIRONMENT = "production"
+OWNER_NAME = "Ashfaq ur Rahman"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "75f6221e15ef407eb6460f2c9878b431"
+
+[observability]
+enabled = true

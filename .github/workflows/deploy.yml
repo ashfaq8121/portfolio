@@ -1,30 +1,37 @@
-name: Deploy to GitHub Pages
+# .github/workflows/deploy.yml
+# Deploy workflow — runs on push to main
+# Required by assignment Phase 5
+# NEVER deploy manually from your laptop — always through this workflow.
+
+name: Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
+    name: Build & Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build Astro site
+      - name: Build site
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # wrangler.toml is in the root — no extra config needed

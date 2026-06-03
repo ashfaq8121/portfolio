@@ -37,15 +37,15 @@ const formattedUpdated = updatedDate?.toLocaleDateString("en-US", {
 ---
 
 <BaseLayout title={title} description={description} ogImage={ogImage} ogType="article">
-  <article class="container" style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);">
+  <article class="container blog-article">
     <header class="blog-post-header content-width">
       <div class="blog-post-meta">
         <time datetime={pubDate.toISOString()}>{formattedPub}</time>
-        {minutesRead && <span>·</span>}
+        {minutesRead && <span aria-hidden="true">·</span>}
         {minutesRead && <span>{minutesRead} min read</span>}
-        {formattedUpdated && <span>· Updated {formattedUpdated}</span>}
+        {formattedUpdated && <span aria-hidden="true">·</span>}
+        {formattedUpdated && <span>Updated {formattedUpdated}</span>}
       </div>
-
       <h1 class="blog-post-title">{title}</h1>
       <p class="blog-post-description">{description}</p>
 
@@ -56,44 +56,56 @@ const formattedUpdated = updatedDate?.toLocaleDateString("en-US", {
       )}
     </header>
 
-    <hr class="divider" style="max-width: var(--content-width); margin-inline: auto;" />
+    <hr class="divider blog-divider" />
 
     <div class="prose content-width">
       <slot />
     </div>
 
-    <div class="blog-post-footer content-width">
+    <footer class="blog-post-footer content-width">
       <a href={`${base}/blog`} class="btn btn-ghost">&larr; Back to blog</a>
-    </div>
+    </footer>
   </article>
 </BaseLayout>
 
 <style>
+  .blog-article {
+    padding-top: calc(var(--nav-height) + var(--space-16));
+    padding-bottom: var(--space-24);
+  }
+
+  .content-width {
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
   .blog-post-header {
     margin-bottom: var(--space-8);
   }
 
   .blog-post-meta {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
     font-size: var(--text-sm);
     color: var(--color-text-muted);
     margin-bottom: var(--space-4);
-    font-family: var(--font-sans);
   }
 
   .blog-post-title {
-    font-size: var(--text-4xl);
-    margin-bottom: var(--space-4);
+    font-size: clamp(2rem, 5vw, 3.25rem);
     line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-4);
   }
 
   .blog-post-description {
-    font-size: var(--text-xl);
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-    margin-bottom: var(--space-6);
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: 1.75;
+    margin: 0 0 var(--space-6);
+    max-width: 60ch;
   }
 
   .blog-post-tags {
@@ -102,9 +114,72 @@ const formattedUpdated = updatedDate?.toLocaleDateString("en-US", {
     gap: var(--space-2);
   }
 
+  .blog-divider {
+    max-width: 44rem;
+    margin: 0 auto var(--space-10);
+  }
+
+  .prose {
+    max-width: 44rem;
+    margin-inline: auto;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: var(--color-text);
+  }
+
+  .prose p {
+    margin: 0;
+  }
+
+  .prose p + p {
+    margin-top: var(--space-5);
+  }
+
+  .prose p + ul,
+  .prose p + ol {
+    margin-top: var(--space-5);
+  }
+
+  .prose ul + p,
+  .prose ol + p {
+    margin-top: var(--space-6);
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.4rem;
+    margin: 0;
+  }
+
+  .prose li {
+    margin: 0;
+    padding-left: var(--space-1);
+  }
+
+  .prose li + li {
+    margin-top: var(--space-4);
+  }
+
+  .prose li::marker {
+    color: var(--color-text-muted);
+  }
+
   .blog-post-footer {
     margin-top: var(--space-16);
     padding-top: var(--space-8);
     border-top: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 768px) {
+    .blog-article {
+      padding-top: calc(var(--nav-height) + var(--space-12));
+      padding-bottom: var(--space-16);
+    }
+
+    .blog-post-description,
+    .prose {
+      font-size: 1rem;
+      line-height: 1.85;
+    }
   }
 </style>

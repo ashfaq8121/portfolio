@@ -1,7 +1,8 @@
 import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  site: 'https://ashfaq8121.github.io/task',
-  base: '/task',
-  output: 'static',
+  output: 'server',
+  site: 'https://portfolio.ashfaq-portfolio.workers.dev',
+  adapter: cloudflare()
 });

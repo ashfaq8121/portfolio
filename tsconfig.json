@@ -1,10 +1,16 @@
 {
-  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "strictNullChecks": true
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "outDir": "dist-worker"
   },
-  "include": ["src", "tests"]
+  "include": ["worker/src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
