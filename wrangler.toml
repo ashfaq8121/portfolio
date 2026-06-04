@@ -6,6 +6,7 @@ directory = "./dist"
 
 [vars]
 OWNER_NAME = "Ashfaq ur Rahman"
+TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"

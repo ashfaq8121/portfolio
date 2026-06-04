@@ -11,6 +11,6 @@
     "skipLibCheck": true,
     "outDir": "dist-worker"
   },
-  "include": ["worker/src/**/*.ts"],
+  "include": ["worker/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

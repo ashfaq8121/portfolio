@@ -12,8 +12,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleContact, Env } from "../src/api/contact";
-
+import { handleContact, Env } from "./contact";
 // ─── Mock Helpers ─────────────────────────────────────────────────────────────
 
 function makeJsonRequest(body: unknown, method = "POST"): Request {
