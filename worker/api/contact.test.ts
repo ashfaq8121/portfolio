@@ -11,14 +11,16 @@
  *   - Both JSON and FormData request bodies
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleContact, Env } from "./contact";
-// ─── Mock Helpers ─────────────────────────────────────────────────────────────
 
 function makeJsonRequest(body: unknown, method = "POST"): Request {
   return new Request("https://portfolio.workers.dev/api/contact", {
     method,
-    headers: { "Content-Type": "application/json", "CF-Connecting-IP": "1.2.3.4" },
+    headers: {
+      "Content-Type": "application/json",
+      "CF-Connecting-IP": "1.2.3.4",
+    },
     body: JSON.stringify(body),
   });
 }
@@ -33,7 +35,6 @@ function makeFormRequest(fields: Record<string, string>): Request {
   });
 }
 
-// In-memory KV mock
 function makeKV(): KVNamespace {
   const store = new Map<string, { value: string; ttl?: number }>();
   return {
@@ -62,18 +63,21 @@ function makeEnv(kv = makeKV()): Env {
     RATE_LIMIT_KV: kv,
     TO_EMAIL: "urrahmanmohammadashfaq@gmail.com",
     OWNER_NAME: "Ashfaq",
+    RESEND_API_KEY: "re_test_key",
   };
 }
 
-// Mock fetch so tests never hit MailChannels
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(new Response(null, { status: 202 }))
+    vi.fn().mockResolvedValue(new Response(null, { status: 200 }))
   );
 });
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("POST /api/contact — validation", () => {
   it("returns 422 when name is missing", async () => {
@@ -121,7 +125,11 @@ describe("POST /api/contact — validation", () => {
 describe("POST /api/contact — success path", () => {
   it("returns 200 with ok:true for a valid submission (JSON)", async () => {
     const res = await handleContact(
-      makeJsonRequest({ name: "Ashfaq", email: "test@example.com", message: "Hello, I'd love to connect!" }),
+      makeJsonRequest({
+        name: "Ashfaq",
+        email: "test@example.com",
+        message: "Hello, I'd love to connect!",
+      }),
       makeEnv()
     );
     expect(res.status).toBe(200);
@@ -131,7 +139,11 @@ describe("POST /api/contact — success path", () => {
 
   it("returns 200 with ok:true for a valid submission (FormData)", async () => {
     const res = await handleContact(
-      makeFormRequest({ name: "Ashfaq", email: "test@example.com", message: "Hello, I'd love to connect!" }),
+      makeFormRequest({
+        name: "Ashfaq",
+        email: "test@example.com",
+        message: "Hello, I'd love to connect!",
+      }),
       makeEnv()
     );
     expect(res.status).toBe(200);
@@ -139,16 +151,26 @@ describe("POST /api/contact — success path", () => {
     expect(body.ok).toBe(true);
   });
 
-  it("calls MailChannels fetch with correct email address", async () => {
+  it("calls Resend fetch with correct email fields", async () => {
     await handleContact(
-      makeJsonRequest({ name: "Ashfaq", email: "sender@example.com", message: "Reaching out about a role." }),
+      makeJsonRequest({
+        name: "Ashfaq",
+        email: "sender@example.com",
+        message: "Reaching out about a role.",
+      }),
       makeEnv()
     );
+
     const fetchMock = vi.mocked(fetch);
-    const callArgs = fetchMock.mock.calls[0];
-    const body = JSON.parse(callArgs[1]?.body as string);
-    expect(body.personalizations[0].to[0].email).toBe("urrahmanmohammadashfaq@gmail.com");
-    expect(body.personalizations[0].reply_to.email).toBe("sender@example.com");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.resend.com/emails");
+
+    const body = JSON.parse(options?.body as string);
+    expect(body.to[0]).toBe("urrahmanmohammadashfaq@gmail.com");
+    expect(body.reply_to).toBe("sender@example.com");
+    expect(body.subject).toContain("Ashfaq");
   });
 });
 
@@ -156,7 +178,11 @@ describe("POST /api/contact — rate limiting", () => {
   it("allows up to 5 submissions from same IP", async () => {
     const kv = makeKV();
     const env = makeEnv(kv);
-    const validPayload = { name: "Ashfaq", email: "a@b.com", message: "Valid message here" };
+    const validPayload = {
+      name: "Ashfaq",
+      email: "a@b.com",
+      message: "Valid message here",
+    };
 
     for (let i = 0; i < 5; i++) {
       const res = await handleContact(makeJsonRequest(validPayload), env);
@@ -167,7 +193,11 @@ describe("POST /api/contact — rate limiting", () => {
   it("blocks the 6th submission from the same IP with 429", async () => {
     const kv = makeKV();
     const env = makeEnv(kv);
-    const validPayload = { name: "Ashfaq", email: "a@b.com", message: "Valid message here" };
+    const validPayload = {
+      name: "Ashfaq",
+      email: "a@b.com",
+      message: "Valid message here",
+    };
 
     for (let i = 0; i < 5; i++) {
       await handleContact(makeJsonRequest(validPayload), env);
@@ -200,15 +230,21 @@ describe("Wrong HTTP method", () => {
 });
 
 describe("Email failure handling", () => {
-  it("returns 500 when MailChannels is down", async () => {
+  it("returns 500 when Resend is down", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response(null, { status: 500 }))
     );
+
     const res = await handleContact(
-      makeJsonRequest({ name: "Ashfaq", email: "a@b.com", message: "Valid message here" }),
+      makeJsonRequest({
+        name: "Ashfaq",
+        email: "a@b.com",
+        message: "Valid message here",
+      }),
       makeEnv()
     );
+
     expect(res.status).toBe(500);
     const body = await res.json<{ ok: boolean }>();
     expect(body.ok).toBe(false);
