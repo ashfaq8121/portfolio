@@ -6,8 +6,7 @@ export default defineConfig({
   site: 'https://portfolio.ashfaq-portfolio.workers.dev',
   adapter: cloudflare({
     platformProxy: {
-      enabled: true,      // ✅ This enables local env bindings
-      configPath: 'wrangler.toml', // Optional: tells it where to read config
+      enabled: true,
     }
   })
 });
