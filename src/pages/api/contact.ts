@@ -1,42 +1,42 @@
-import type { APIRoute } from "astro";
+﻿import type { APIRoute } from "astro";
+
+const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
 
 interface ContactResponse {
   ok: boolean;
   error?: string;
   errors?: Record<string, string>;
+  message?: string;
 }
 
 function json(body: ContactResponse, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
   });
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+export const prerender = false;
 
-export const POST: APIRoute = async ({ request, locals }): Promise<Response> => {
-  // Try every possible way to get env in Cloudflare Workers + Astro v6
-  const runtime = (locals as any).runtime;
-  const env = runtime?.env
-    ?? runtime?.context?.env
-    ?? (locals as any).env
-    ?? (locals as any).cloudflare?.env
-    ?? {};
+export const OPTIONS: APIRoute = async () =>
+  new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 
-  // Parse body
+export const POST: APIRoute = async ({ request }): Promise<Response> => {
   let name = "", email = "", message = "";
   try {
     const ct = request.headers.get("Content-Type") ?? "";
     if (ct.includes("application/json")) {
-      const b = await request.json() as any;
+      const b = (await request.json()) as any;
       name = b.name ?? "";
       email = b.email ?? "";
       message = b.message ?? "";
@@ -50,84 +50,41 @@ export const POST: APIRoute = async ({ request, locals }): Promise<Response> => 
     return json({ ok: false, error: "Invalid request body." }, 400);
   }
 
-  // Validate
   const errors: Record<string, string> = {};
-  if (name.trim().length < 2) errors.name = "Name must be at least 2 characters.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Valid email required.";
-  if (message.trim().length < 10) errors.message = "Message must be at least 10 characters.";
-  if (Object.keys(errors).length > 0) return json({ ok: false, errors }, 422);
+  if (name.trim().length < 2)
+    errors.name = "Name must be at least 2 characters.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+    errors.email = "A valid email address is required.";
+  if (message.trim().length < 10)
+    errors.message = "Message must be at least 10 characters.";
+  if (Object.keys(errors).length > 0)
+    return json({ ok: false, errors }, 422);
 
-  // Rate limit
-  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  if (env?.RATE_LIMIT_KV) {
-    try {
-      const key = `ratelimit:contact:${ip}`;
-      const current = await env.RATE_LIMIT_KV.get(key);
-      const count = current ? parseInt(current, 10) : 0;
-      if (count >= 5) return json({ ok: false, error: "Too many messages. Try later." }, 429);
-      await env.RATE_LIMIT_KV.put(key, String(count + 1), { expirationTtl: 3600 });
-    } catch (err) {
-      console.error("KV error:", err);
-    }
-  }
-
-  // Get API key
-  const apiKey = env?.RESEND_API_KEY;
-
-  // Log what we have for debugging
-  console.log("Env keys:", JSON.stringify(Object.keys(env ?? {})));
-  console.log("Has RESEND_API_KEY:", !!apiKey);
-
-  if (!apiKey) {
-    return json({ ok: false, error: "Email service is not configured." }, 500);
-  }
-
-  const toEmail = env?.TO_EMAIL ?? "urrahmanmohammadashfaq@gmail.com";
-
-  // Send email
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "Portfolio Contact <onboarding@resend.dev>",
-        to: [toEmail],
-        reply_to: email.trim(),
-        subject: `[Portfolio] Message from ${name.trim()}`,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
-            <h2 style="color:#1a1a2e;">📬 New Portfolio Contact</h2>
-            <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-            <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
-            <p><strong>Message:</strong></p>
-            <p style="background:#f4f4f4;padding:16px;border-radius:6px;line-height:1.6;">
-              ${escapeHtml(message).replace(/\n/g, "<br>")}
-            </p>
-          </div>
-        `,
-        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+        access_key: WEB3FORMS_KEY,
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim(),
+        subject: "[Portfolio Contact] Message from " + name.trim(),
+        from_name: name.trim(),
+        replyto: email.trim(),
       }),
     });
 
-    if (res.ok) return json({ ok: true });
-    const errText = await res.text();
-    console.error("Resend error:", errText);
-    return json({ ok: false, error: "Could not send email." }, 500);
+    const data = await res.json() as any;
+
+    if (data.success) {
+      return json({ ok: true, message: "Message sent! I will get back to you soon." });
+    }
+
+    console.error("Web3Forms error:", data);
+    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
   } catch (err) {
     console.error("Fetch error:", err);
-    return json({ ok: false, error: "Could not send email." }, 500);
+    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
   }
 };
-
-export const OPTIONS: APIRoute = async (): Promise<Response> =>
-  new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
