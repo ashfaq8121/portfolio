@@ -1,22 +1,20 @@
-@'
 /**
- * src/pages/api/contact.ts
- * Astro v6 API route — Cloudflare Workers + Web3Forms
+ * worker/api/contact.ts
+ * Standalone Cloudflare Worker handler (used by tests)
  */
 
-import type { APIRoute } from "astro";
+export interface Env {
+  RATE_LIMIT_KV: KVNamespace;
+  DB?: D1Database;
+  TO_EMAIL: string;
+  OWNER_NAME: string;
+  RESEND_API_KEY: string;
+}
 
 const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
 
-interface ContactResponse {
-  ok: boolean;
-  error?: string;
-  errors?: Record<string, string>;
-  message?: string;
-}
-
-function json(body: ContactResponse, status = 200): Response {
-  return new Response(JSON.stringify(body), {
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
@@ -25,72 +23,80 @@ function json(body: ContactResponse, status = 200): Response {
   });
 }
 
-export const prerender = false;
+function validate(raw: any) {
+  const errors: Record<string, string> = {};
+  const name = (raw.name ?? "").trim();
+  const email = (raw.email ?? "").trim();
+  const message = (raw.message ?? "").trim();
+  if (name.length < 2) errors.name = "Name must be at least 2 characters.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "A valid email address is required.";
+  if (message.length < 10) errors.message = "Message must be at least 10 characters.";
+  return { ok: Object.keys(errors).length === 0, errors, name, email, message };
+}
 
-export const OPTIONS: APIRoute = async () =>
-  new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+export async function handleContact(request: Request, env: Env): Promise<Response> {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  }
 
-export const POST: APIRoute = async ({ request }): Promise<Response> => {
-  let name = "", email = "", message = "";
+  if (request.method !== "POST") {
+    return json({ ok: false, error: "Method not allowed." }, 405);
+  }
+
+  let raw: any = {};
   try {
     const ct = request.headers.get("Content-Type") ?? "";
     if (ct.includes("application/json")) {
-      const b = (await request.json()) as any;
-      name = b.name ?? "";
-      email = b.email ?? "";
-      message = b.message ?? "";
+      raw = await request.json();
     } else {
-      const f = await request.formData();
-      name = f.get("name")?.toString() ?? "";
-      email = f.get("email")?.toString() ?? "";
-      message = f.get("message")?.toString() ?? "";
+      const form = await request.formData();
+      raw = {
+        name: form.get("name")?.toString() ?? "",
+        email: form.get("email")?.toString() ?? "",
+        message: form.get("message")?.toString() ?? "",
+      };
     }
   } catch {
     return json({ ok: false, error: "Invalid request body." }, 400);
   }
 
-  const errors: Record<string, string> = {};
-  if (name.trim().length < 2)
-    errors.name = "Name must be at least 2 characters.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-    errors.email = "A valid email address is required.";
-  if (message.trim().length < 10)
-    errors.message = "Message must be at least 10 characters.";
-  if (Object.keys(errors).length > 0)
-    return json({ ok: false, errors }, 422);
+  const { ok, errors, name, email, message } = validate(raw);
+  if (!ok) return json({ ok: false, errors }, 422);
 
-  try {
-    const res = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_KEY,
-        name: name.trim(),
-        email: email.trim(),
-        message: message.trim(),
-        subject: `[Portfolio Contact] Message from ${name.trim()}`,
-        from_name: name.trim(),
-        replyto: email.trim(),
-      }),
-    });
-
-    const data = await res.json() as any;
-
-    if (data.success) {
-      return json({ ok: true, message: "Message sent! I will get back to you soon." });
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  if (env.RATE_LIMIT_KV) {
+    try {
+      const key = `ratelimit:${ip}`;
+      const current = await env.RATE_LIMIT_KV.get(key);
+      const count = current ? parseInt(current, 10) : 0;
+      if (count >= 5) return json({ ok: false, error: "Too many messages. Please try again later." }, 429);
+      await env.RATE_LIMIT_KV.put(key, String(count + 1), { expirationTtl: 3600 });
+    } catch (err) {
+      console.error("KV error:", err);
     }
-
-    console.error("Web3Forms error:", data);
-    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
-  } catch (err) {
-    console.error("Fetch error:", err);
-    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
   }
-};
+
+  const res = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_KEY,
+      name,
+      email,
+      message,
+      subject: `[Portfolio Contact] Message from ${name}`,
+      replyto: email,
+    }),
+  });
+
+  const data = await res.json() as any;
+  if (data.success) return json({ ok: true, message: "Message sent!" });
+  return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
+}
