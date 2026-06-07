@@ -165,11 +165,10 @@ describe("POST /api/contact — success path", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe("https://api.resend.com/emails");
+    expect(url).toBe("https://api.web3forms.com/submit");
 
     const body = JSON.parse(options?.body as string);
-    expect(body.to[0]).toBe("urrahmanmohammadashfaq@gmail.com");
-    expect(body.reply_to).toBe("sender@example.com");
+    expect(body.replyto).toBe("sender@example.com");
     expect(body.subject).toContain("Ashfaq");
   });
 });
