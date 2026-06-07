@@ -9,8 +9,10 @@ The assignment required Cloudflare. Workers are good because they handle both st
 ## Contact Form
 The form sends a POST request to `/api/contact` which is an Astro API route running as a Cloudflare Worker function. I used Resend to send emails because MailChannels stopped being free for Cloudflare Workers in 2024. Rate limiting uses Cloudflare KV — max 5 messages per IP per hour to prevent spam.
 
-## Why Resend
-MailChannels was originally used but it removed its free tier for Cloudflare Workers. Resend has a free tier of 100 emails per day which is more than enough for a portfolio contact form.
+## Why Web3Forms
+I originally used Resend but it requires a verified domain to send emails to any address.
+Web3Forms is completely free, requires no domain verification, and delivers directly
+to Gmail. For a portfolio contact form it is the simplest solution with zero configuration.
 
 ## Output Mode
 I used `output: server` in Astro config because the contact form needs a server-side API route. This means Cloudflare handles every request dynamically.
