@@ -73,6 +73,11 @@ my-portfolio/
 ├── wrangler.toml           # Cloudflare Workers configuration
 ├── package.json            # Dependencies and scripts
 └── tsconfig.json           # TypeScript configuration
+|__ plan.md
+|__design.md
+|__decision.md
+|__testing.md
+
 ```
 
 ---
@@ -121,7 +126,7 @@ Never run `wrangler deploy` manually — always push through GitHub.
 
 | Secret | Where to set | What it is |
 |---|---|---|
-| `RESEND_API_KEY` | Wrangler secret | API key for sending emails |
+| Web3Forms | Sending contact form emails |
 | `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Token for auto-deployment |
 
 ---
