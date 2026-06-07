@@ -1,3 +1,4 @@
+
 /**
  * worker/api/contact.ts
  * Standalone Cloudflare Worker handler (used by tests)
@@ -83,20 +84,35 @@ export async function handleContact(request: Request, env: Env): Promise<Respons
     }
   }
 
-  const res = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      access_key: WEB3FORMS_KEY,
-      name,
-      email,
-      message,
-      subject: `[Portfolio Contact] Message from ${name}`,
-      replyto: email,
-    }),
-  });
+  try {
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        name,
+        email,
+        message,
+        subject: `[Portfolio Contact] Message from ${name}`,
+        replyto: email,
+      }),
+    });
 
-  const data = await res.json() as any;
-  if (data.success) return json({ ok: true, message: "Message sent!" });
-  return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
+    if (!res.ok) {
+      return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
+    }
+
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = { success: true };
+    }
+
+    if (data.success) return json({ ok: true, message: "Message sent!" });
+    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return json({ ok: false, error: "Could not send your message. Please try again." }, 500);
+  }
 }
