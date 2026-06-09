@@ -81,6 +81,39 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       <aside class="about-sidebar" aria-label="Skills and links">
        
         <div class="sidebar-card">
+          <h2 class="sidebar-heading">Skills</h2>
+          <div class="skills-group">
+            <p class="skills-category">Web</p>
+            <div class="skills-tags">
+              <span class="skill-tag">HTML</span>
+              <span class="skill-tag">CSS</span>
+              <span class="skill-tag">JavaScript</span>
+              <span class="skill-tag">TypeScript</span>
+              <span class="skill-tag">Astro</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <p class="skills-category">Data</p>
+            <div class="skills-tags">
+              <span class="skill-tag">Python</span>
+              <span class="skill-tag">Pandas</span>
+              <span class="skill-tag">Power BI</span>
+              <span class="skill-tag">SQL</span>
+              <span class="skill-tag">Excel</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <p class="skills-category">Tools</p>
+            <div class="skills-tags">
+              <span class="skill-tag">Git</span>
+              <span class="skill-tag">GitHub Actions</span>
+              <span class="skill-tag">Cloudflare</span>
+              <span class="skill-tag">VS Code</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
           <h2 class="sidebar-heading">Links</h2>
           <ul class="link-list" role="list">
             <li>
@@ -180,5 +213,41 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     color: var(--color-text-secondary);
     margin: 0;
     line-height: 1.5;
+  }
+
+  .skills-group {
+    margin-bottom: var(--space-4);
+  }
+
+  .skills-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .skills-category {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1-5);
+  }
+
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--color-surface-offset, rgba(0,0,0,0.05));
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    white-space: nowrap;
   }
 </style>
