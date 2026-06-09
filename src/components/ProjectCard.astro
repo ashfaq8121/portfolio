@@ -178,9 +178,7 @@ const buttonId = `toggle-${slug}`;
     });
   });
 </script>
-
 <style>
-  /* ===== PROJECT CARD ===== */
   .project-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -199,11 +197,10 @@ const buttonId = `toggle-${slug}`;
     box-shadow: var(--shadow-md);
   }
 
-  /* ===== TOGGLE BUTTON ===== */
   .card-toggle {
     width: 100%;
     display: flex;
-    flex-direction: column;   /* stack vertically on mobile */
+    flex-direction: column;
     align-items: stretch;
     gap: var(--space-3);
     padding: var(--space-5);
@@ -223,14 +220,13 @@ const buttonId = `toggle-${slug}`;
     outline-offset: -2px;
   }
 
-  /* ===== IMAGE COLUMN ===== */
   .card-image-col {
     flex-shrink: 0;
   }
 
   .card-thumb {
-    width: 100%;               /* full width on mobile */
-    height: 180px;             /* tall enough to look great */
+    width: 100%;
+    height: 180px;
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.04));
@@ -250,34 +246,23 @@ const buttonId = `toggle-${slug}`;
     font-size: 1.5rem;
   }
 
-  /* ===== CONTENT + CHEVRON ROW on mobile ===== */
   .card-content-col {
     flex: 1;
     min-width: 0;
-    padding-top: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  /* On mobile, content and chevron sit in a row */
-  .card-toggle .card-image-col + .card-content-col {
-    flex: 1;
-  }
-
-  /* ===== CHEVRON COLUMN ===== */
   .card-chevron-col {
     flex-shrink: 0;
-    padding-top: 0;
-    align-self: flex-end;       /* sits at bottom-right on mobile */
-    display: flex;
-    justify-content: flex-end;
+    align-self: center;
   }
 
   .card-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-1-5);
+    gap: 0.375rem;
   }
 
   .tag {
@@ -312,13 +297,6 @@ const buttonId = `toggle-${slug}`;
     overflow: hidden;
   }
 
-  /* ===== CHEVRON COLUMN ===== */
-  .card-chevron-col {
-    flex-shrink: 0;
-    padding-top: 0;
-    align-self: center;
-  }
-
   .chevron {
     display: flex;
     align-items: center;
@@ -337,7 +315,6 @@ const buttonId = `toggle-${slug}`;
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.06));
   }
 
-  /* ===== EXPANDED DETAILS ===== */
   .card-details {
     border-top: 1px solid var(--color-border);
     padding: var(--space-4);
@@ -368,26 +345,38 @@ const buttonId = `toggle-${slug}`;
   }
 
   .stage {
-    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+    position: relative;
+    padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-5) + 0.5rem);
     border-radius: var(--radius-lg);
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.02));
     border: 1px solid var(--color-border);
+    box-sizing: border-box;
   }
 
-  .stage-problem {
-    border-left: 4px solid #ef4444;
+  .stage::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    top: 0.875rem;
+    bottom: 0.875rem;
+    width: 4px;
+    border-radius: 999px;
   }
 
-  .stage-approach {
-    border-left: 4px solid #f59e0b;
+  .stage-problem::before {
+    background: #ef4444;
   }
 
-  .stage-result {
-    border-left: 4px solid #22c55e;
+  .stage-approach::before {
+    background: #f59e0b;
   }
 
-  .stage-next {
-    border-left: 4px solid #3b82f6;
+  .stage-result::before {
+    background: #22c55e;
+  }
+
+  .stage-next::before {
+    background: #3b82f6;
   }
 
   .stage-label {
@@ -420,6 +409,8 @@ const buttonId = `toggle-${slug}`;
     color: var(--color-text-secondary);
     font-size: var(--text-sm);
     line-height: 1.65;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .card-links {
@@ -434,10 +425,9 @@ const buttonId = `toggle-${slug}`;
     font-size: var(--text-sm);
   }
 
-  /* ===== TABLET (640px+) ===== */
   @media (min-width: 640px) {
     .card-toggle {
-      flex-direction: row;      /* back to side-by-side on tablet+ */
+      flex-direction: row;
       align-items: flex-start;
       gap: var(--space-5);
       padding: var(--space-5);
@@ -458,7 +448,6 @@ const buttonId = `toggle-${slug}`;
     }
 
     .card-chevron-col {
-      align-self: center;
       justify-content: center;
     }
 
@@ -493,7 +482,7 @@ const buttonId = `toggle-${slug}`;
     }
 
     .stage {
-      padding: var(--space-5);
+      padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-6) + 0.5rem);
     }
 
     .btn-sm {
@@ -501,7 +490,6 @@ const buttonId = `toggle-${slug}`;
     }
   }
 
-  /* ===== DESKTOP (768px+) ===== */
   @media (min-width: 768px) {
     .card-toggle {
       gap: var(--space-6);
@@ -531,7 +519,6 @@ const buttonId = `toggle-${slug}`;
     }
   }
 
-  /* ===== LARGE DESKTOP (1024px+) ===== */
   @media (min-width: 1024px) {
     .card-thumb {
       width: 220px;
