@@ -178,7 +178,9 @@ const buttonId = `toggle-${slug}`;
     });
   });
 </script>
+
 <style>
+  /* ===== PROJECT CARD ===== */
   .project-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -197,10 +199,11 @@ const buttonId = `toggle-${slug}`;
     box-shadow: var(--shadow-md);
   }
 
+  /* ===== TOGGLE BUTTON ===== */
   .card-toggle {
     width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: column;   /* stack vertically on mobile */
     align-items: stretch;
     gap: var(--space-3);
     padding: var(--space-5);
@@ -220,13 +223,14 @@ const buttonId = `toggle-${slug}`;
     outline-offset: -2px;
   }
 
+  /* ===== IMAGE COLUMN ===== */
   .card-image-col {
     flex-shrink: 0;
   }
 
   .card-thumb {
-    width: 100%;
-    height: 180px;
+    width: 100%;               /* full width on mobile */
+    height: 180px;             /* tall enough to look great */
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.04));
@@ -246,23 +250,35 @@ const buttonId = `toggle-${slug}`;
     font-size: 1.5rem;
   }
 
+  /* ===== CONTENT + CHEVRON ROW on mobile ===== */
   .card-content-col {
     flex: 1;
     min-width: 0;
+    padding-top: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
+  /* On mobile, content and chevron sit in a row */
+  .card-toggle .card-image-col + .card-content-col {
+    flex: 1;
+  }
+
+  /* ===== CHEVRON COLUMN ===== */
   .card-chevron-col {
     flex-shrink: 0;
-    align-self: center;
+    padding-top: 0;
+    align-self: flex-end;       /* sits at bottom-right on mobile */
+    display: flex;
+    justify-content: flex-end;
   }
 
   .card-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.375rem;
+    gap: var(--space-1-5);
+    margin:5px;
   }
 
   .tag {
@@ -284,6 +300,7 @@ const buttonId = `toggle-${slug}`;
     font-size: var(--text-base);
     line-height: 1.3;
     font-weight: 600;
+    margin:15px;
   }
 
   .card-desc {
@@ -295,6 +312,14 @@ const buttonId = `toggle-${slug}`;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin:15px;
+  }
+
+  /* ===== CHEVRON COLUMN ===== */
+  .card-chevron-col {
+    flex-shrink: 0;
+    padding-top: 0;
+    align-self: center;
   }
 
   .chevron {
@@ -315,6 +340,7 @@ const buttonId = `toggle-${slug}`;
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.06));
   }
 
+  /* ===== EXPANDED DETAILS ===== */
   .card-details {
     border-top: 1px solid var(--color-border);
     padding: var(--space-4);
@@ -340,43 +366,31 @@ const buttonId = `toggle-${slug}`;
 
   .stages {
     display: grid;
-    gap: var(--space-3);
+    gap: var(--space-5);
     margin-bottom: var(--space-4);
   }
 
   .stage {
-    position: relative;
-    padding: var(--space-4) var(--space-4) var(--space-4) calc(var(--space-5) + 0.5rem);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
     border-radius: var(--radius-lg);
     background: var(--color-surface-offset, rgba(0, 0, 0, 0.02));
     border: 1px solid var(--color-border);
-    box-sizing: border-box;
   }
 
-  .stage::before {
-    content: "";
-    position: absolute;
-    left: 0.75rem;
-    top: 0.875rem;
-    bottom: 0.875rem;
-    width: 4px;
-    border-radius: 999px;
+  .stage-problem {
+    border-left: 4px solid #ef4444;
   }
 
-  .stage-problem::before {
-    background: #ef4444;
+  .stage-approach {
+    border-left: 4px solid #f59e0b;
   }
 
-  .stage-approach::before {
-    background: #f59e0b;
+  .stage-result {
+    border-left: 4px solid #22c55e;
   }
 
-  .stage-result::before {
-    background: #22c55e;
-  }
-
-  .stage-next::before {
-    background: #3b82f6;
+  .stage-next {
+    border-left: 4px solid #3b82f6;
   }
 
   .stage-label {
@@ -386,6 +400,7 @@ const buttonId = `toggle-${slug}`;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    margin:20px;
   }
 
   .stage-problem .stage-label {
@@ -405,12 +420,10 @@ const buttonId = `toggle-${slug}`;
   }
 
   .stage-text {
-    margin: 0;
+    margin: 20px;
     color: var(--color-text-secondary);
     font-size: var(--text-sm);
     line-height: 1.65;
-    word-break: break-word;
-    overflow-wrap: anywhere;
   }
 
   .card-links {
@@ -423,11 +436,15 @@ const buttonId = `toggle-${slug}`;
     min-height: 36px;
     padding: 0.5rem 1rem;
     font-size: var(--text-sm);
+    width: -webkit-fill-available;
+    justify-content: center;
+  
   }
 
+  /* ===== TABLET (640px+) ===== */
   @media (min-width: 640px) {
     .card-toggle {
-      flex-direction: row;
+      flex-direction: row;      /* back to side-by-side on tablet+ */
       align-items: flex-start;
       gap: var(--space-5);
       padding: var(--space-5);
@@ -448,6 +465,7 @@ const buttonId = `toggle-${slug}`;
     }
 
     .card-chevron-col {
+      align-self: center;
       justify-content: center;
     }
 
@@ -461,10 +479,13 @@ const buttonId = `toggle-${slug}`;
 
     .card-title {
       font-size: var(--text-lg);
+      margin-left:15px;
+
     }
 
     .card-desc {
       font-size: var(--text-sm);
+      margin-left:15px;
     }
 
     .chevron {
@@ -482,7 +503,7 @@ const buttonId = `toggle-${slug}`;
     }
 
     .stage {
-      padding: var(--space-5) var(--space-5) var(--space-5) calc(var(--space-6) + 0.5rem);
+      padding: var(--space-5);
     }
 
     .btn-sm {
@@ -490,6 +511,7 @@ const buttonId = `toggle-${slug}`;
     }
   }
 
+  /* ===== DESKTOP (768px+) ===== */
   @media (min-width: 768px) {
     .card-toggle {
       gap: var(--space-6);
@@ -503,6 +525,7 @@ const buttonId = `toggle-${slug}`;
 
     .card-title {
       font-size: var(--text-xl);
+      mragin-left:25px;
     }
 
     .card-details {
@@ -514,11 +537,15 @@ const buttonId = `toggle-${slug}`;
     }
 
     .card-links a {
-      width: auto;
-      justify-content: flex-start;
+        width: -webkit-fill-available;
+          justify-content: center;
+          margin:10px;
+          padding-top:10px;
+          border-radius:100px;
     }
   }
 
+  /* ===== LARGE DESKTOP (1024px+) ===== */
   @media (min-width: 1024px) {
     .card-thumb {
       width: 220px;

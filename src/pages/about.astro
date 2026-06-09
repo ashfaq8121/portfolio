@@ -10,6 +10,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   <div class="container" style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-24);">
     <div class="about-layout">
 
+      <!-- Main Content -->
       <main class="about-main">
         <h1 class="about-title">About me</h1>
 
@@ -59,7 +60,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
             analyzing a dataset, I aim to create work that is clear, useful, and professional.
           </p>
 
-          
           <h2>Outside academics and work</h2>
 
           <p>
@@ -74,11 +74,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
             I work best when I understand the goal clearly and can break the problem into smaller steps.
             I believe good work comes from planning well, paying attention to detail, and staying open to feedback.
           </p>
-
         </div>
       </main>
 
+      <!-- Sidebar -->
+      <aside class="about-sidebar" aria-label="Links, focus and skills">
 
+        <!-- Links -->
         <div class="sidebar-card">
           <h2 class="sidebar-heading">Links</h2>
           <ul class="link-list" role="list">
@@ -100,36 +102,38 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           </ul>
         </div>
 
+        <!-- Currently Focused On -->
         <div class="sidebar-card">
           <h2 class="sidebar-heading">Currently focused on</h2>
           <p class="sidebar-text">
             Building portfolio projects, improving data analytics skills, and preparing for entry-level software and data roles.
           </p>
         </div>
+
+        <!-- Skills -->
+        <div class="sidebar-card">
+          <h2 class="sidebar-heading">Skills</h2>
+          <ul class="skills-list" role="list">
+            <li>HTML</li>
+            <li>CSS</li>
+            <li>JavaScript</li>
+            <li>TypeScript</li>
+            <li>Responsive Web Design</li>
+            <li>Python</li>
+            <li>Pandas</li>
+            <li>NumPy</li>
+            <li>Power BI</li>
+            <li>SQL</li>
+            <li>Excel</li>
+            <li>Data Analysis</li>
+            <li>Dashboard Building</li>
+            <li>Git</li>
+            <li>GitHub Actions</li>
+            <li>Cloudflare</li>
+          </ul>
+        </div>
+
       </aside>
-        
-    <aside class="about-sidebar" aria-label="Skills and links">
-      <div class="sidebar-card">
-       <h2 class="sidebar-heading">Skills</h2>
-     <div class="skills-tags">
-       <span class="skill-tag">HTML</span>
-       <span class="skill-tag">CSS</span>
-       <span class="skill-tag">JavaScript</span>
-       <span class="skill-tag">Responsive Web Design</span>
-       <span class="skill-tag">Clean UI/UX Design</span>
-       <span class="skill-tag">Python</span>
-       <span class="skill-tag">Pandas</span>
-       <span class="skill-tag">NumPy</span>
-       <span class="skill-tag">Power BI</span>
-       <span class="skill-tag">SQL</span>
-       <span class="skill-tag">Excel</span>
-       <span class="skill-tag">Data Analysis</span>
-       <span class="skill-tag">Dashboard Building</span>
-       <span class="skill-tag">GitHub</span>
-       <span class="skill-tag">Cloudflare</span>
-      </div>
-      </div>
-   </aside>
 
     </div>
   </div>
@@ -178,7 +182,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     margin-bottom: var(--space-4);
   }
 
-
   .link-list {
     list-style: none;
     display: flex;
@@ -205,39 +208,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     line-height: 1.5;
   }
 
-  .skills-group {
-    margin-bottom: var(--space-4);
-  }
-
-  .skills-group:last-child {
-    margin-bottom: 0;
-  }
-
-  .skills-category {
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 var(--space-2) 0;
-  }
-
-  .skills-tags {
+  /* Skills — one per line with dividers */
+  .skills-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1-5);
+    flex-direction: column;
   }
 
-  .skill-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    background: var(--color-surface-offset, rgba(0,0,0,0.05));
-    border: 1px solid var(--color-border);
+  .skills-list li {
+    font-size: var(--text-sm);
     color: var(--color-text-secondary);
-    font-size: var(--text-xs);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
     line-height: 1.4;
-    white-space: nowrap;
+  }
+
+  .skills-list li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .skills-list li:first-child {
+    padding-top: 0;
   }
 </style>
