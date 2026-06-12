@@ -12,5 +12,10 @@ TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
 binding = "RATE_LIMIT_KV"
 id = "75f6221e15ef407eb6460f2c9878b431"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio-db"
+database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
+
 [observability]
 enabled = true
