@@ -1,6 +1,8 @@
 ﻿import type { APIRoute } from "astro";
 import { env as cfEnv } from "cloudflare:workers";
 
+const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
+
 interface ContactResponse {
   ok: boolean;
   error?: string;
@@ -74,7 +76,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
 
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  // Save to D1
+  // Step 1 — Save to D1 (always runs)
   const db = (cfEnv as any).DB;
   if (db) {
     try {
@@ -86,5 +88,35 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     }
   }
 
-  return json({ ok: true, message: "Message sent! I will get back to you soon." });
+  // Step 2 — Send email via Web3Forms
+  try {
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        name,
+        email,
+        message,
+        subject: "[Portfolio Contact] Message from " + name,
+        from_name: name,
+        replyto: email,
+      }),
+    });
+
+    const data = (await res.json()) as any;
+
+    if (data.success) {
+      return json({ ok: true, message: "Message sent! I will get back to you soon." });
+    }
+
+    console.error("Web3Forms error:", data);
+    // D1 already saved — still return success to user
+    return json({ ok: true, message: "Message sent! I will get back to you soon." });
+
+  } catch (err) {
+    console.error("Web3Forms fetch error:", err);
+    // D1 already saved — still return success to user
+    return json({ ok: true, message: "Message sent! I will get back to you soon." });
+  }
 };
