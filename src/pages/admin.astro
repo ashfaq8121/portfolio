@@ -9,7 +9,7 @@ export const prerender = false;
   <title>Admin — Contact Submissions</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,16 +17,12 @@ export const prerender = false;
       --bg: #0a0a0f;
       --surface: #111118;
       --surface-2: #16161f;
-      --surface-3: #1a1a25;
       --border: #1f1f2e;
       --border-hover: #2e2e45;
-      --border-active: #3a3a55;
       --accent: #6366f1;
       --accent-hover: #5558e0;
       --accent-glow: rgba(99,102,241,0.12);
-      --accent-glow-strong: rgba(99,102,241,0.20);
       --danger: #ef4444;
-      --danger-hover: #dc2626;
       --danger-bg: rgba(239,68,68,0.08);
       --danger-border: rgba(239,68,68,0.2);
       --success: #22c55e;
@@ -38,84 +34,72 @@ export const prerender = false;
       --radius-sm: 8px;
       --radius-md: 12px;
       --radius-lg: 16px;
-      --radius-xl: 20px;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
       --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
       --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
     }
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 40px 24px 80px;
-      line-height: 1.5;
+      padding: 40px 20px 80px;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ─── LOGIN PAGE ─── */
+    /* ─── LOGIN ─── */
     #login-section {
       width: 100%;
       max-width: 420px;
-      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-      margin-top: 10vh;
+      margin-top: 8vh;
+      animation: fadeUp 0.5s ease both;
     }
 
     .login-logo {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
     }
 
-    .login-logo .shield {
+    .shield {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       background: var(--accent-glow);
       border: 1.5px solid rgba(99,102,241,0.25);
       border-radius: var(--radius-lg);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       box-shadow: 0 0 32px var(--accent-glow);
-      transition: box-shadow 0.3s ease;
-    }
-
-    .login-logo .shield:hover {
-      box-shadow: 0 0 48px var(--accent-glow-strong);
     }
 
     .login-logo h1 {
-      font-size: 1.625rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: #fff;
       letter-spacing: -0.03em;
-      line-height: 1.2;
     }
 
     .login-logo p {
-      font-size: 0.9375rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
-      margin-top: 8px;
-      font-weight: 400;
+      margin-top: 6px;
     }
 
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 32px;
+      border-radius: var(--radius-lg);
+      padding: 28px;
       box-shadow: var(--shadow-lg);
     }
 
     .form-label {
       display: block;
-      font-size: 0.8125rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-dim);
       letter-spacing: 0.04em;
@@ -124,40 +108,30 @@ export const prerender = false;
 
     .input-wrap {
       position: relative;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .input-wrap input {
       width: 100%;
-      padding: 14px 48px 14px 16px;
+      padding: 13px 46px 13px 14px;
       background: var(--bg);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
       color: var(--text);
       font-size: 1rem;
       font-family: inherit;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-
-    .input-wrap input::placeholder {
-      color: var(--text-muted);
-      opacity: 0.7;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .input-wrap input:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 4px var(--accent-glow);
-      background: var(--surface);
-    }
-
-    .input-wrap input:hover:not(:focus) {
-      border-color: var(--border-hover);
     }
 
     .toggle-pw {
       position: absolute;
-      right: 14px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
       background: none;
@@ -167,34 +141,26 @@ export const prerender = false;
       padding: 6px;
       display: flex;
       align-items: center;
-      border-radius: var(--radius-sm);
-      transition: color 0.2s, background 0.2s;
+      border-radius: 6px;
+      transition: color 0.2s;
     }
-
-    .toggle-pw:hover { 
-      color: var(--text-dim); 
-      background: var(--surface-2);
-    }
+    .toggle-pw:hover { color: var(--text-dim); }
 
     .btn-login {
       width: 100%;
-      padding: 14px;
+      padding: 13px;
       background: var(--accent);
       color: #fff;
       border: none;
       border-radius: var(--radius-md);
-      font-size: 0.9375rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
-      letter-spacing: 0.01em;
+      font-family: inherit;
+      transition: background 0.2s, transform 0.12s;
       box-shadow: 0 2px 8px rgba(99,102,241,0.3);
     }
-
-    .btn-login:hover { 
-      background: var(--accent-hover); 
-      box-shadow: 0 4px 16px rgba(99,102,241,0.4);
-    }
+    .btn-login:hover { background: var(--accent-hover); }
     .btn-login:active { transform: scale(0.985); }
 
     .error-msg {
@@ -203,7 +169,7 @@ export const prerender = false;
       gap: 10px;
       color: var(--danger);
       font-size: 0.875rem;
-      margin-top: 18px;
+      margin-top: 16px;
       background: var(--danger-bg);
       border: 1px solid var(--danger-border);
       border-radius: var(--radius-md);
@@ -211,44 +177,41 @@ export const prerender = false;
       font-weight: 500;
     }
 
-    .error-msg svg {
-      flex-shrink: 0;
-    }
-
     /* ─── DASHBOARD ─── */
     #admin-section {
       display: none;
       width: 100%;
       max-width: 1200px;
-      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fadeUp 0.5s ease both;
     }
 
     .dash-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
     }
 
     .dash-title {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .dash-title h1 {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: #fff;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
     }
 
     .badge {
-      padding: 4px 14px;
+      padding: 4px 12px;
       border-radius: 20px;
-      font-size: 0.8125rem;
+      font-size: 0.8rem;
       font-weight: 600;
       background: var(--success-bg);
       color: var(--success);
@@ -258,8 +221,8 @@ export const prerender = false;
     .btn-logout {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
+      gap: 7px;
+      padding: 9px 16px;
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
@@ -267,66 +230,53 @@ export const prerender = false;
       font-size: 0.875rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
       font-family: inherit;
+      transition: all 0.2s;
     }
+    .btn-logout:hover { border-color: var(--border-hover); color: var(--text-dim); }
 
-    .btn-logout:hover {
-      border-color: var(--border-hover);
-      color: var(--text-dim);
-      background: var(--surface-2);
-    }
-
-    .btn-logout:active {
-      transform: scale(0.97);
-    }
-
-    /* Stats row */
+    /* Stats */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
     }
 
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      border-radius: var(--radius-md);
+      padding: 20px;
     }
 
-    .stat-card:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-1px);
-    }
-
-    .stat-card .stat-label {
-      font-size: 0.8125rem;
+    .stat-label {
+      font-size: 0.75rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       font-weight: 600;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .stat-card .stat-value {
-      font-size: 2rem;
+    .stat-value {
+      font-size: 1.9rem;
       font-weight: 700;
       color: #fff;
       letter-spacing: -0.03em;
       line-height: 1.1;
     }
 
-    .stat-card .stat-sub {
-      font-size: 0.875rem;
+    .stat-sub {
+      font-size: 0.8rem;
       color: var(--text-dim);
-      margin-top: 6px;
-      font-weight: 500;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    /* Table */
+    /* ─── DESKTOP TABLE ─── */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -338,228 +288,161 @@ export const prerender = false;
     .table-toolbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 18px 24px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
-      gap: 16px;
-      flex-wrap: wrap;
     }
 
     .table-toolbar span {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       font-weight: 500;
     }
 
-    .table-container {
-      overflow-x: auto;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
+    .table-scroll { overflow-x: auto; }
 
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
+      border-collapse: collapse;
       font-size: 0.875rem;
     }
 
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    thead tr {
-      background: var(--surface-2);
-    }
+    thead tr { background: var(--surface-2); }
 
     th {
-      padding: 14px 20px;
+      padding: 13px 18px;
       text-align: left;
-      font-size: 0.6875rem;
+      font-size: 0.7rem;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
-      position: relative;
-    }
-
-    th:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1px;
-      height: 16px;
-      background: var(--border);
-      opacity: 0.5;
     }
 
     td {
-      padding: 16px 20px;
+      padding: 16px 18px;
       border-bottom: 1px solid var(--border);
       vertical-align: top;
-      color: var(--text);
       line-height: 1.6;
-      transition: background 0.15s ease;
     }
 
-    tr:last-child td { border-bottom: none; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--surface-2); }
 
-    tbody tr {
-      transition: background 0.15s ease;
-    }
-
-    tbody tr:hover td { 
-      background: var(--surface-2);
-    }
-
-    .td-num { 
-      color: var(--text-muted); 
-      font-size: 0.8125rem; 
-      font-weight: 600; 
-      width: 48px; 
-      text-align: center;
-    }
-    
-    .td-name { 
-      font-weight: 600; 
-      white-space: nowrap; 
-      color: #fff;
-      font-size: 0.9375rem;
-    }
-    
-    .td-email a { 
-      color: var(--accent); 
-      text-decoration: none; 
-      font-weight: 500;
-      transition: opacity 0.2s;
-    }
-    
-    .td-email a:hover { 
-      text-decoration: underline; 
-      opacity: 0.85;
-    }
-    
-    .td-message { 
-      max-width: 360px; 
-      color: var(--text-dim);
-      word-break: break-word;
-    }
-    
-    .td-date { 
-      white-space: nowrap; 
-      color: var(--text-muted); 
-      font-size: 0.8125rem;
-      font-weight: 500;
-    }
+    .td-num { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; width: 48px; text-align: center; }
+    .td-name { font-weight: 600; color: #fff; white-space: nowrap; }
+    .td-email a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .td-email a:hover { text-decoration: underline; }
+    .td-message { max-width: 320px; color: var(--text-dim); word-break: break-word; }
+    .td-date { white-space: nowrap; color: var(--text-muted); font-size: 0.8rem; }
 
     .btn-delete {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
+      gap: 5px;
+      padding: 7px 12px;
       background: var(--danger-bg);
       border: 1.5px solid var(--danger-border);
       border-radius: var(--radius-sm);
       color: var(--danger);
-      font-size: 0.8125rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      white-space: nowrap;
       font-family: inherit;
+      transition: all 0.2s;
+      white-space: nowrap;
     }
-
     .btn-delete:hover {
       background: rgba(239,68,68,0.15);
       border-color: rgba(239,68,68,0.4);
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(239,68,68,0.15);
     }
 
-    .btn-delete:active {
-      transform: translateY(0) scale(0.97);
+    /* ─── MOBILE CARDS (replaces table on small screens) ─── */
+    .mobile-cards { display: none; }
+
+    .submission-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 80px 24px;
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .card-date {
+      font-size: 0.72rem;
       color: var(--text-muted);
+      white-space: nowrap;
+      margin-top: 3px;
     }
 
-    .empty-state svg { 
-      margin-bottom: 16px; 
-      opacity: 0.25; 
+    .card-email {
+      margin-bottom: 10px;
     }
-    
-    .empty-state p { 
-      font-size: 1rem; 
+
+    .card-email a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
       font-weight: 500;
     }
 
-    .empty-state .empty-sub {
+    .card-message {
       font-size: 0.875rem;
-      margin-top: 6px;
       color: var(--text-dim);
+      line-height: 1.6;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      word-break: break-word;
     }
 
-    .msg-preview {
-      max-width: 280px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      cursor: pointer;
-      transition: color 0.2s;
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .msg-preview:hover {
-      color: var(--text);
+    .card-num {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
     }
+    .empty-state svg { margin-bottom: 14px; opacity: 0.25; }
+    .empty-state p { font-size: 0.95rem; font-weight: 500; }
+    .empty-state .empty-sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-dim); }
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-8px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .row-animate {
-      animation: slideIn 0.3s ease both;
-    }
-
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #3a3a55; }
-
-    @media (max-width: 768px) {
-      body { padding: 24px 16px 60px; }
-      #login-section { margin-top: 5vh; }
-      .card { padding: 24px; }
-      .dash-header { margin-bottom: 24px; }
-      .dash-title h1 { font-size: 1.25rem; }
-      .stats-row { grid-template-columns: 1fr; }
-      .stat-card { padding: 20px; }
-      .stat-card .stat-value { font-size: 1.75rem; }
-      .table-toolbar { padding: 14px 16px; }
-      th, td { padding: 12px 14px; }
-      .td-message { max-width: 200px; }
-    }
-
+    /* Toast */
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 14px 20px;
+      bottom: 20px;
+      right: 20px;
+      left: 20px;
+      max-width: 380px;
+      margin: 0 auto;
+      padding: 13px 18px;
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
@@ -572,21 +455,61 @@ export const prerender = false;
       gap: 10px;
       z-index: 1000;
       animation: toastIn 0.3s ease both;
-      max-width: 400px;
     }
 
-    .toast.toast-out {
-      animation: toastOut 0.3s ease both;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes toastIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes toastOut {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(12px); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
+
+    /* ─── RESPONSIVE BREAKPOINTS ─── */
+
+    /* Tablet */
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      body { padding: 24px 14px 60px; }
+
+      #login-section { margin-top: 4vh; }
+      .card { padding: 22px 18px; }
+      .login-logo h1 { font-size: 1.3rem; }
+      .login-logo { margin-bottom: 28px; }
+
+      .dash-header { margin-bottom: 16px; }
+      .dash-title h1 { font-size: 1.15rem; }
+      .btn-logout span { display: none; } /* hide text, show only icon */
+      .btn-logout { padding: 9px 12px; }
+
+      /* Stats: 1 column on very small, 2 on medium mobile */
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .stat-card { padding: 14px; }
+      .stat-value { font-size: 1.5rem; }
+      .stat-sub { font-size: 0.72rem; }
+
+      /* Hide desktop table, show cards */
+      .table-wrap { display: none; }
+      .mobile-cards { display: block; }
+    }
+
+    @media (max-width: 380px) {
+      .stats-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -603,15 +526,13 @@ export const prerender = false;
     <h1>Admin Portal</h1>
     <p>Contact submissions dashboard</p>
   </div>
-
   <div class="card">
     <label class="form-label" for="password">Password</label>
     <div class="input-wrap">
       <input type="password" id="password" placeholder="Enter admin password" autocomplete="current-password" />
-      <button class="toggle-pw" type="button" onclick="togglePw()" title="Show/hide password" id="toggle-btn">
+      <button class="toggle-pw" type="button" onclick="togglePw()" title="Show/hide password">
         <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
         </svg>
         <svg id="eye-off-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
@@ -619,12 +540,10 @@ export const prerender = false;
         </svg>
       </button>
     </div>
-
     <button class="btn-login" onclick="login()">Sign in</button>
-
     <div class="error-msg" id="login-error">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="login-error-text">Incorrect password. Try again.</span>
+      Incorrect password. Please try again.
     </div>
   </div>
 </div>
@@ -637,64 +556,71 @@ export const prerender = false;
       <span class="badge" id="count-badge">0 entries</span>
     </div>
     <button class="btn-logout" onclick="logout()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Logout
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Logout</span>
     </button>
   </div>
 
+  <!-- Stats -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-label">Total Submissions</div>
+      <div class="stat-label">Total Messages</div>
       <div class="stat-value" id="stat-total">0</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Latest From</div>
-      <div class="stat-value" style="font-size:1.125rem;padding-top:4px;color:var(--text-dim)" id="stat-latest">—</div>
-      <div class="stat-sub" id="stat-latest-email">—</div>
+      <div class="stat-value" style="font-size:1rem;color:var(--text-dim);padding-top:4px" id="stat-latest">—</div>
+      <div class="stat-sub" id="stat-latest-email">No submissions yet</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Latest Date</div>
-      <div class="stat-value" style="font-size:1.125rem;padding-top:4px;color:var(--text-dim)" id="stat-latest-date">—</div>
+      <div class="stat-value" style="font-size:0.9rem;color:var(--text-dim);padding-top:4px;line-height:1.4" id="stat-latest-date">—</div>
     </div>
   </div>
 
+  <!-- Desktop Table -->
   <div class="table-wrap">
     <div class="table-toolbar">
       <span id="table-info">All messages</span>
     </div>
-    <div class="table-container">
+    <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th style="width:48px;text-align:center">#</th>
+            <th style="text-align:center">#</th>
             <th>Name</th>
             <th>Email</th>
-            <th style="min-width:280px">Message</th>
+            <th>Message</th>
             <th>Date (UTC)</th>
-            <th style="width:80px"></th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="submissions-body">
-          <tr><td colspan="6" class="empty-state"><p>Loading submissions…</p></td></tr>
+          <tr><td colspan="6"><div class="empty-state"><p>Loading…</p></div></td></tr>
         </tbody>
       </table>
     </div>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div class="mobile-cards" id="mobile-cards">
+    <div class="empty-state"><p>Loading…</p></div>
   </div>
 </div>
 
 <script is:inline>
   function togglePw() {
     const input = document.getElementById('password');
-    const eyeOn = document.getElementById('eye-icon');
-    const eyeOff = document.getElementById('eye-off-icon');
+    const on = document.getElementById('eye-icon');
+    const off = document.getElementById('eye-off-icon');
     if (input.type === 'password') {
       input.type = 'text';
-      eyeOn.style.display = 'none';
-      eyeOff.style.display = 'block';
+      on.style.display = 'none';
+      off.style.display = 'block';
     } else {
       input.type = 'password';
-      eyeOn.style.display = 'block';
-      eyeOff.style.display = 'none';
+      on.style.display = 'block';
+      off.style.display = 'none';
     }
   }
 
@@ -702,19 +628,14 @@ export const prerender = false;
     const password = document.getElementById('password').value;
     const errEl = document.getElementById('login-error');
     errEl.style.display = 'none';
-
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
       credentials: 'same-origin'
     });
-
-    if (res.ok) {
-      showDashboard();
-    } else {
-      errEl.style.display = 'flex';
-    }
+    if (res.ok) showDashboard();
+    else errEl.style.display = 'flex';
   }
 
   document.getElementById('password').addEventListener('keydown', e => {
@@ -732,39 +653,43 @@ export const prerender = false;
     location.reload();
   }
 
-  function showToast(message, type = 'info') {
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return dateStr; }
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg, type) {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    const color = type === 'success' ? '#22c55e' : '#ef4444';
+    t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><path d="${type === 'success' ? 'M20 6L9 17l-5-5' : 'M18 6L6 18M6 6l12 12'}"/></svg><span>${msg}</span>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
 
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    const iconColor = type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#6366f1';
-    toast.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        ${type === 'success' 
-          ? '<path d="M20 6L9 17l-5-5"/>' 
-          : type === 'error'
-          ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
-          : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
-        }
-      </svg>
-      <span>${message}</span>
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.classList.add('toast-out');
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+  async function del(id) {
+    if (!confirm('Delete this submission?')) return;
+    const res = await fetch('/api/admin/submissions?id=' + id, { method: 'DELETE', credentials: 'same-origin' });
+    if (res.ok) { showToast('Deleted successfully', 'success'); loadSubmissions(); }
+    else showToast('Failed to delete', 'error');
   }
 
   async function loadSubmissions() {
     const res = await fetch('/api/admin/submissions', { credentials: 'same-origin' });
     if (res.status === 401) { location.reload(); return; }
-
     const json = await res.json();
     const data = json.data || [];
-    const tbody = document.getElementById('submissions-body');
 
+    // Update stats
     document.getElementById('count-badge').textContent = data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
     document.getElementById('stat-total').textContent = data.length;
     document.getElementById('stat-latest').textContent = data.length ? esc(data[0].name) : '—';
@@ -772,79 +697,64 @@ export const prerender = false;
     document.getElementById('stat-latest-date').textContent = data.length ? formatDate(data[0].submitted_at) : '—';
     document.getElementById('table-info').textContent = data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
 
+    const emptyHtml = `<div class="empty-state">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <p>No submissions yet</p>
+      <p class="empty-sub">Contact form entries will appear here.</p>
+    </div>`;
+
+    // Desktop table
+    const tbody = document.getElementById('submissions-body');
     if (!data.length) {
-      tbody.innerHTML = `
-        <tr><td colspan="6">
-          <div class="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <p>No submissions yet</p>
-            <p class="empty-sub">When someone fills out your contact form, it will appear here.</p>
+      tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+    } else {
+      tbody.innerHTML = data.map((row, i) => `
+        <tr id="row-${row.id}">
+          <td class="td-num">${i + 1}</td>
+          <td class="td-name">${esc(row.name)}</td>
+          <td class="td-email"><a href="mailto:${esc(row.email)}">${esc(row.email)}</a></td>
+          <td class="td-message">${esc(row.message)}</td>
+          <td class="td-date">${formatDate(row.submitted_at)}</td>
+          <td>
+            <button class="btn-delete" onclick="del(${row.id})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Mobile cards
+    const mobileEl = document.getElementById('mobile-cards');
+    if (!data.length) {
+      mobileEl.innerHTML = emptyHtml;
+    } else {
+      mobileEl.innerHTML = data.map((row, i) => `
+        <div class="submission-card" id="card-${row.id}">
+          <div class="card-top">
+            <div>
+              <div class="card-name">${esc(row.name)}</div>
+              <div class="card-date">${formatDate(row.submitted_at)}</div>
+            </div>
           </div>
-        </td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = data.map((row, i) => `
-      <tr id="row-${row.id}" class="row-animate" style="animation-delay: ${i * 0.04}s">
-        <td class="td-num">${i + 1}</td>
-        <td class="td-name">${esc(row.name)}</td>
-        <td class="td-email"><a href="mailto:${esc(row.email)}">${esc(row.email)}</a></td>
-        <td class="td-message msg-preview" title="Click to view full message" onclick="showFullMessage(this, '${esc(row.message).replace(/'/g, "\\'")}')">${esc(row.message)}</td>
-        <td class="td-date">${formatDate(row.submitted_at)}</td>
-        <td>
-          <button class="btn-delete" onclick="del(${row.id})">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            Delete
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleString('en-US', { 
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
-    } catch {
-      return dateStr;
+          <div class="card-email">
+            <a href="mailto:${esc(row.email)}">${esc(row.email)}</a>
+          </div>
+          <div class="card-message">${esc(row.message)}</div>
+          <div class="card-footer">
+            <span class="card-num">#${i + 1}</span>
+            <button class="btn-delete" onclick="del(${row.id})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
   }
 
-  function showFullMessage(el, msg) {
-    if (el.classList.contains('expanded')) {
-      el.classList.remove('expanded');
-      el.style.webkitLineClamp = '2';
-      el.style.display = '-webkit-box';
-    } else {
-      el.classList.add('expanded');
-      el.style.webkitLineClamp = 'unset';
-      el.style.display = 'block';
-    }
-  }
-
-  async function del(id) {
-    if (!confirm('Delete this submission? This cannot be undone.')) return;
-    const res = await fetch('/api/admin/submissions?id=' + id, { method: 'DELETE', credentials: 'same-origin' });
-    if (res.ok) {
-      showToast('Submission deleted successfully', 'success');
-      loadSubmissions();
-    } else {
-      showToast('Failed to delete submission', 'error');
-    }
-  }
-
-  function esc(str) {
-    return String(str)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
-  }
-
+  // Auto login check
   fetch('/api/admin/submissions', { credentials: 'same-origin' }).then(res => {
     if (res.ok) showDashboard();
   });
