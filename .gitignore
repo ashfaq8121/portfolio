@@ -3,6 +3,7 @@ dist/
 .astro/
 .wrangler/
 .env
+.dev.vars
 .env.*
 !.env.example
 *.local

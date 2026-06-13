@@ -17,8 +17,24 @@ to Gmail. For a portfolio contact form it is the simplest solution with zero con
 ## Output Mode
 I used `output: server` in Astro config because the contact form needs a server-side API route. This means Cloudflare handles every request dynamically.
 
-## What I Cut and Why
-- **D1 database** — storing form submissions in a database was optional. Email forwarding achieves the same result for a portfolio site.
+## Extension 1 — Auth Mechanism Choice
+
+I chose an **HttpOnly session cookie** over a signed JWT because:
+- HttpOnly cookies cannot be read by JavaScript — safe from XSS attacks.
+- For a single admin there is no need for stateless token verification.
+- Works with `credentials: 'same-origin'` fetch calls with no extra headers.
+
+## Extension 1 — What I Would Change at 10,000 Entries
+- Add an index on `submitted_at` for fast ordering.
+- Add pagination (LIMIT 50 OFFSET ?) to avoid loading all rows.
+- Add a search filter by name or email.
+- Soft-delete is already implemented so no data is ever lost.
+
+## Extension 1 — Migrations
+Applied manually via `wrangler d1 migrations apply portfolio-db --remote`
+before the first deploy. The migration file is checked into the repo
+at `migrations/0001_init.sql` so the schema is fully reproducible.
+
 - **Auto OG images** — generating a unique OG image per blog post requires a headless browser. Too complex for the time available. One static OG image works fine.
 - **Print stylesheet** — nice to have but not required. Added to future improvements list.
 
