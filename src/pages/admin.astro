@@ -1,7 +1,6 @@
 ---
 export const prerender = false;
 ---
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,7 +144,6 @@ export const prerender = false;
       border-radius: 6px;
       transition: color 0.2s;
     }
-
     .toggle-pw:hover { color: var(--text-dim); }
 
     .btn-login {
@@ -162,7 +160,6 @@ export const prerender = false;
       transition: background 0.2s, transform 0.12s;
       box-shadow: 0 2px 8px rgba(99,102,241,0.3);
     }
-
     .btn-login:hover { background: var(--accent-hover); }
     .btn-login:active { transform: scale(0.985); }
 
@@ -236,9 +233,9 @@ export const prerender = false;
       font-family: inherit;
       transition: all 0.2s;
     }
-
     .btn-logout:hover { border-color: var(--border-hover); color: var(--text-dim); }
 
+    /* Stats */
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -279,6 +276,7 @@ export const prerender = false;
       white-space: nowrap;
     }
 
+    /* ─── DESKTOP TABLE ─── */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -355,12 +353,12 @@ export const prerender = false;
       transition: all 0.2s;
       white-space: nowrap;
     }
-
     .btn-delete:hover {
       background: rgba(239,68,68,0.15);
       border-color: rgba(239,68,68,0.4);
     }
 
+    /* ─── MOBILE CARDS (replaces table on small screens) ─── */
     .mobile-cards { display: none; }
 
     .submission-card {
@@ -426,16 +424,17 @@ export const prerender = false;
       font-weight: 600;
     }
 
+    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 60px 20px;
       color: var(--text-muted);
     }
-
     .empty-state svg { margin-bottom: 14px; opacity: 0.25; }
     .empty-state p { font-size: 0.95rem; font-weight: 500; }
     .empty-state .empty-sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-dim); }
 
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -472,10 +471,14 @@ export const prerender = false;
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
 
+    /* ─── RESPONSIVE BREAKPOINTS ─── */
+
+    /* Tablet */
     @media (max-width: 900px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* Mobile */
     @media (max-width: 640px) {
       body { padding: 24px 14px 60px; }
 
@@ -486,9 +489,10 @@ export const prerender = false;
 
       .dash-header { margin-bottom: 16px; }
       .dash-title h1 { font-size: 1.15rem; }
-      .btn-logout span { display: none; }
+      .btn-logout span { display: none; } /* hide text, show only icon */
       .btn-logout { padding: 9px 12px; }
 
+      /* Stats: 1 column on very small, 2 on medium mobile */
       .stats-row {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -499,6 +503,7 @@ export const prerender = false;
       .stat-value { font-size: 1.5rem; }
       .stat-sub { font-size: 0.72rem; }
 
+      /* Hide desktop table, show cards */
       .table-wrap { display: none; }
       .mobile-cards { display: block; }
     }
@@ -510,6 +515,7 @@ export const prerender = false;
 </head>
 <body>
 
+<!-- ── LOGIN ── -->
 <div id="login-section">
   <div class="login-logo">
     <div class="shield">
@@ -520,7 +526,6 @@ export const prerender = false;
     <h1>Admin Portal</h1>
     <p>Contact submissions dashboard</p>
   </div>
-
   <div class="card">
     <label class="form-label" for="password">Password</label>
     <div class="input-wrap">
@@ -543,6 +548,7 @@ export const prerender = false;
   </div>
 </div>
 
+<!-- ── DASHBOARD ── -->
 <div id="admin-section">
   <div class="dash-header">
     <div class="dash-title">
@@ -555,6 +561,7 @@ export const prerender = false;
     </button>
   </div>
 
+  <!-- Stats -->
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Total Messages</div>
@@ -571,6 +578,7 @@ export const prerender = false;
     </div>
   </div>
 
+  <!-- Desktop Table -->
   <div class="table-wrap">
     <div class="table-toolbar">
       <span id="table-info">All messages</span>
@@ -594,6 +602,7 @@ export const prerender = false;
     </div>
   </div>
 
+  <!-- Mobile Cards -->
   <div class="mobile-cards" id="mobile-cards">
     <div class="empty-state"><p>Loading…</p></div>
   </div>
@@ -648,24 +657,12 @@ export const prerender = false;
     if (!dateStr) return '—';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return dateStr;
-    }
+      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return dateStr; }
   }
 
   function esc(str) {
-    return String(str)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function showToast(msg, type) {
@@ -681,36 +678,24 @@ export const prerender = false;
 
   async function del(id) {
     if (!confirm('Delete this submission?')) return;
-    const res = await fetch('/api/admin/submissions?id=' + id, {
-      method: 'DELETE',
-      credentials: 'same-origin'
-    });
-    if (res.ok) {
-      showToast('Deleted successfully', 'success');
-      loadSubmissions();
-    } else {
-      showToast('Failed to delete', 'error');
-    }
+    const res = await fetch('/api/admin/submissions?id=' + id, { method: 'DELETE', credentials: 'same-origin' });
+    if (res.ok) { showToast('Deleted successfully', 'success'); loadSubmissions(); }
+    else showToast('Failed to delete', 'error');
   }
 
   async function loadSubmissions() {
     const res = await fetch('/api/admin/submissions', { credentials: 'same-origin' });
-    if (res.status === 401) {
-      location.reload();
-      return;
-    }
-
+    if (res.status === 401) { location.reload(); return; }
     const json = await res.json();
     const data = json.data || [];
 
-    document.getElementById('count-badge').textContent =
-      data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
+    // Update stats
+    document.getElementById('count-badge').textContent = data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
     document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-latest').textContent = data.length ? data[0].name : '—';
-    document.getElementById('stat-latest-email').textContent = data.length ? data[0].email : 'No submissions yet';
+    document.getElementById('stat-latest').textContent = data.length ? esc(data[0].name) : '—';
+    document.getElementById('stat-latest-email').textContent = data.length ? esc(data[0].email) : 'No submissions yet';
     document.getElementById('stat-latest-date').textContent = data.length ? formatDate(data[0].submitted_at) : '—';
-    document.getElementById('table-info').textContent =
-      data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
+    document.getElementById('table-info').textContent = data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
 
     const emptyHtml = `<div class="empty-state">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -718,6 +703,7 @@ export const prerender = false;
       <p class="empty-sub">Contact form entries will appear here.</p>
     </div>`;
 
+    // Desktop table
     const tbody = document.getElementById('submissions-body');
     if (!data.length) {
       tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
@@ -739,6 +725,7 @@ export const prerender = false;
       `).join('');
     }
 
+    // Mobile cards
     const mobileEl = document.getElementById('mobile-cards');
     if (!data.length) {
       mobileEl.innerHTML = emptyHtml;
@@ -767,6 +754,7 @@ export const prerender = false;
     }
   }
 
+  // Auto login check
   fetch('/api/admin/submissions', { credentials: 'same-origin' }).then(res => {
     if (res.ok) showDashboard();
   });
