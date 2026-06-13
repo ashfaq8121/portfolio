@@ -439,9 +439,8 @@ export const prerender = false;
       position: fixed;
       bottom: 20px;
       right: 20px;
-      left: 20px;
+      left: auto;
       max-width: 380px;
-      margin: 0 auto;
       padding: 13px 18px;
       background: var(--surface-2);
       border: 1px solid var(--border);
@@ -480,36 +479,119 @@ export const prerender = false;
 
     /* Mobile */
     @media (max-width: 640px) {
-      body { padding: 24px 14px 60px; }
+      body { padding: 20px 16px 60px; }
 
-      #login-section { margin-top: 4vh; }
+      #login-section { 
+        margin-top: 4vh; 
+        padding: 0 4px;
+      }
+      
       .card { padding: 22px 18px; }
-      .login-logo h1 { font-size: 1.3rem; }
-      .login-logo { margin-bottom: 28px; }
+      .login-logo h1 { font-size: 1.25rem; }
+      .login-logo { margin-bottom: 24px; }
+      .shield {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 14px;
+      }
+      .shield svg { width: 22px; height: 22px; }
 
-      .dash-header { margin-bottom: 16px; }
-      .dash-title h1 { font-size: 1.15rem; }
-      .btn-logout span { display: none; } /* hide text, show only icon */
-      .btn-logout { padding: 9px 12px; }
+      .dash-header { 
+        margin-bottom: 16px; 
+        gap: 8px;
+      }
+      .dash-title { gap: 8px; }
+      .dash-title h1 { font-size: 1.1rem; }
+      .badge { 
+        padding: 3px 10px; 
+        font-size: 0.75rem; 
+      }
+      .btn-logout span { display: none; }
+      .btn-logout { 
+        padding: 8px 10px; 
+        border-radius: var(--radius-sm);
+      }
 
-      /* Stats: 1 column on very small, 2 on medium mobile */
+      /* Stats: stack to 1 column on mobile */
       .stats-row {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
         gap: 10px;
         margin-bottom: 16px;
       }
 
-      .stat-card { padding: 14px; }
-      .stat-value { font-size: 1.5rem; }
-      .stat-sub { font-size: 0.72rem; }
+      .stat-card { 
+        padding: 16px; 
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .stat-label { 
+        margin-bottom: 0; 
+        font-size: 0.7rem;
+      }
+      .stat-value { 
+        font-size: 1.3rem; 
+        text-align: left;
+      }
+      .stat-sub { 
+        font-size: 0.72rem; 
+        display: block;
+      }
 
       /* Hide desktop table, show cards */
       .table-wrap { display: none; }
-      .mobile-cards { display: block; }
+      .mobile-cards { 
+        display: block; 
+        padding: 0 2px;
+      }
+
+      .submission-card {
+        padding: 16px 14px;
+        margin-bottom: 10px;
+        border-radius: var(--radius-sm);
+      }
+
+      .card-top { margin-bottom: 10px; }
+      .card-name { font-size: 0.9rem; }
+      .card-date { font-size: 0.7rem; }
+      
+      .card-email { margin-bottom: 8px; }
+      .card-email a { font-size: 0.8rem; }
+      
+      .card-message {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+      }
+
+      .card-footer { padding-top: 4px; }
+      .card-num { font-size: 0.7rem; }
+      .btn-delete { padding: 6px 10px; font-size: 0.75rem; }
+
+      /* Toast fix */
+      .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+        width: auto;
+      }
     }
 
+    /* Extra small screens */
     @media (max-width: 380px) {
-      .stats-row { grid-template-columns: 1fr; }
+      body { padding: 16px 12px 50px; }
+      .card { padding: 18px 14px; }
+      .login-logo h1 { font-size: 1.15rem; }
+      
+      .stats-row { gap: 8px; }
+      .stat-card { padding: 12px; }
+      .stat-value { font-size: 1.2rem; }
+      
+      .submission-card { padding: 14px 12px; }
+      .card-message { font-size: 0.8rem; }
     }
   </style>
 </head>
