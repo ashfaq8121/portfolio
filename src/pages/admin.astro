@@ -145,6 +145,7 @@ export const prerender = false;
       border-radius: 6px;
       transition: color 0.2s;
     }
+
     .toggle-pw:hover { color: var(--text-dim); }
 
     .btn-login {
@@ -161,6 +162,7 @@ export const prerender = false;
       transition: background 0.2s, transform 0.12s;
       box-shadow: 0 2px 8px rgba(99,102,241,0.3);
     }
+
     .btn-login:hover { background: var(--accent-hover); }
     .btn-login:active { transform: scale(0.985); }
 
@@ -186,11 +188,16 @@ export const prerender = false;
       animation: fadeUp 0.5s ease both;
     }
 
+    .dash-header,
+    .stats-row,
+    .table-wrap {
+      margin: 20px;
+    }
+
     .dash-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
       flex-wrap: wrap;
       gap: 12px;
     }
@@ -234,6 +241,7 @@ export const prerender = false;
       font-family: inherit;
       transition: all 0.2s;
     }
+
     .btn-logout:hover { border-color: var(--border-hover); color: var(--text-dim); }
 
     /* Stats */
@@ -241,7 +249,6 @@ export const prerender = false;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
-      margin-bottom: 24px;
     }
 
     .stat-card {
@@ -277,18 +284,20 @@ export const prerender = false;
       white-space: nowrap;
     }
 
-    /* ─── DESKTOP TABLE ─── */
+    /* ─── TABLE ─── */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
       box-shadow: var(--shadow-md);
+      width: auto;
     }
 
     .table-toolbar {
       display: flex;
       align-items: center;
+      gap: 12px;
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
     }
@@ -299,10 +308,16 @@ export const prerender = false;
       font-weight: 500;
     }
 
-    .table-scroll { overflow-x: auto; }
+    .table-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+    }
 
     table {
       width: 100%;
+      min-width: 900px;
       border-collapse: collapse;
       font-size: 0.875rem;
     }
@@ -332,17 +347,29 @@ export const prerender = false;
     tbody tr:hover td { background: var(--surface-2); }
 
     .td-num { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; width: 48px; text-align: center; }
-    .td-name { font-weight: 600; color: #fff; white-space: nowrap; }
+    .td-name { font-weight: 600; color: #fff; white-space: nowrap; min-width: 140px; }
+    .td-email { min-width: 220px; }
     .td-email a { color: var(--accent); text-decoration: none; font-weight: 500; }
     .td-email a:hover { text-decoration: underline; }
 
-    .td-email a,
-    .card-email a {
+    .td-email a {
       word-break: break-all;
       overflow-wrap: break-word;
     }
-    .td-message { max-width: 320px; color: var(--text-dim); word-break: break-word; }
-    .td-date { white-space: nowrap; color: var(--text-muted); font-size: 0.8rem; }
+
+    .td-message {
+      max-width: 320px;
+      min-width: 260px;
+      color: var(--text-dim);
+      word-break: break-word;
+    }
+
+    .td-date {
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      min-width: 170px;
+    }
 
     .btn-delete {
       display: inline-flex;
@@ -360,88 +387,10 @@ export const prerender = false;
       transition: all .25s ease;
       white-space: nowrap;
     }
+
     .btn-delete:hover {
       background: rgba(239,68,68,0.15);
       border-color: rgba(239,68,68,0.4);
-    }
-
-    /* ─── MOBILE CARDS (hidden by default, shown on small screens) ─── */
-    .mobile-cards { 
-      display: none; 
-    }
-
-    .submission-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 12px;
-      transition: all .25s ease;
-    }
-
-    .submission-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--border-hover);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    }
-
-    .card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .card-name {
-      font-weight: 700;
-      color: #fff;
-      font-size: 0.95rem;
-    }
-
-    .card-date {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      margin-top: 3px;
-    }
-
-    .card-email {
-      margin-bottom: 10px;
-    }
-
-    .card-email a {
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-
-    .card-email a:hover {
-      text-decoration: underline;
-    }
-
-    .card-message {
-      font-size: 0.875rem;
-      color: var(--text-dim);
-      line-height: 1.6;
-      padding: 10px 12px;
-      background: var(--surface-2);
-      border-radius: var(--radius-sm);
-      margin-bottom: 12px;
-      word-break: break-word;
-    }
-
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .card-num {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-weight: 600;
     }
 
     /* Empty state */
@@ -450,6 +399,7 @@ export const prerender = false;
       padding: 60px 20px;
       color: var(--text-muted);
     }
+
     .empty-state svg { margin-bottom: 14px; opacity: 0.25; }
     .empty-state p { font-size: 0.95rem; font-weight: 500; }
     .empty-state .empty-sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-dim); }
@@ -491,126 +441,149 @@ export const prerender = false;
     ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
 
     /* ─── RESPONSIVE BREAKPOINTS ─── */
-
-    /* Tablet (768px - 1024px) */
     @media (max-width: 1024px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .td-message { max-width: 200px; }
+      table { min-width: 860px; }
+      .td-message { max-width: 240px; min-width: 220px; }
     }
 
-    /* Small tablet / large phone (641px - 768px) */
     @media (max-width: 768px) {
-
-      body { padding: 30px 16px 60px; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .dash-title h1 { font-size: 1.2rem; }
-      .td-message { max-width: 150px; }
-    
-
-      body { 
-        padding: 20px 16px 60px; 
+      body {
+        padding: 20px 12px 60px;
         overflow-x: hidden;
       }
 
-      #login-section { 
-        margin-top: 4vh; 
+      #login-section {
+        margin-top: 4vh;
         padding: 0 4px;
       }
 
       .card { padding: 22px 18px; }
       .login-logo h1 { font-size: 1.25rem; }
       .login-logo { margin-bottom: 24px; }
+
       .shield {
         width: 52px;
         height: 52px;
         margin-bottom: 14px;
       }
-      .shield svg { width: 22px; height: 22px; }
 
-      .dash-header { 
-        margin-bottom: 16px; 
+      .shield svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .dash-header,
+      .stats-row,
+      .table-wrap {
+        margin: 12px;
+      }
+
+      .dash-header {
         gap: 8px;
       }
-      .dash-title { gap: 8px; }
-      .dash-title h1 { font-size: 1.1rem; }
-      .badge { 
-        padding: 3px 10px; 
-        font-size: 0.75rem; 
+
+      .dash-title {
+        gap: 8px;
       }
-      .btn-logout span { display: none; }
-      .btn-logout { 
-        padding: 8px 10px; 
+
+      .dash-title h1 {
+        font-size: 1.1rem;
+      }
+
+      .badge {
+        padding: 3px 10px;
+        font-size: 0.75rem;
+      }
+
+      .btn-logout span {
+        display: none;
+      }
+
+      .btn-logout {
+        padding: 8px 10px;
         border-radius: var(--radius-sm);
       }
 
-      /* Stats: stack to 1 column on mobile */
       .stats-row {
         grid-template-columns: 1fr;
         gap: 10px;
-        margin-bottom: 16px;
       }
 
-      .stat-card { 
-        padding: 16px; 
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+      .stat-card {
+        padding: 16px;
       }
-      .stat-label { 
-        margin-bottom: 0; 
+
+      .stat-label {
+        margin-bottom: 4px;
         font-size: 0.7rem;
       }
-      .stat-value { 
-        font-size: 1.3rem; 
+
+      .stat-value {
+        font-size: 1.3rem;
         text-align: left;
       }
-      .stat-sub { 
-        font-size: 0.72rem; 
+
+      .stat-sub {
+        font-size: 0.72rem;
         display: block;
       }
 
-      /* CRITICAL: Completely hide desktop table on mobile */
-      .table-wrap { 
-        display: none !important; 
-      }
-
-      /* Also hide any table-scroll that might be showing */
-      .table-scroll {
-        display: none !important;
-      }
-
-      /* Show mobile cards */
-      .mobile-cards { 
+      .table-wrap {
         display: block !important;
-        padding: 0 2px;
+        width: auto;
       }
 
-      .submission-card {
-        padding: 16px 14px;
-        margin-bottom: 10px;
-        border-radius: var(--radius-sm);
+      .table-scroll {
+        display: block !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
       }
 
-      .card-top { margin-bottom: 10px; }
-      .card-name { font-size: 0.9rem; }
-      .card-date { font-size: 0.7rem; }
-
-      .card-email { margin-bottom: 8px; }
-      .card-email a { font-size: 0.8rem; }
-
-      .card-message {
-        font-size: 0.82rem;
-        line-height: 1.5;
-        padding: 8px 10px;
-        margin-bottom: 10px;
+      table {
+        min-width: 760px;
       }
 
-      .card-footer { padding-top: 4px; }
-      .card-num { font-size: 0.7rem; }
-      .btn-delete { padding: 6px 10px; font-size: 0.75rem; transition: all .25s ease; }
+      th, td {
+        padding: 12px 14px;
+        font-size: 0.8rem;
+      }
 
-      /* Toast fix */
+      .td-num {
+        width: 42px;
+      }
+
+      .td-name {
+        min-width: 120px;
+      }
+
+      .td-email {
+        min-width: 200px;
+      }
+
+      .td-message {
+        min-width: 220px;
+        max-width: 220px;
+      }
+
+      .td-date {
+        min-width: 160px;
+      }
+
+      .btn-delete {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+
+      .table-toolbar::after {
+        content: "Swipe sideways to view table";
+        margin-left: auto;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
       .toast {
         left: 16px;
         right: 16px;
@@ -618,27 +591,35 @@ export const prerender = false;
         max-width: none;
         width: auto;
       }
-    
     }
 
-    /* Extra small screens */
     @media (max-width: 380px) {
-      body { padding: 16px 12px 50px; }
+      body { padding: 16px 10px 50px; }
       .card { padding: 18px 14px; }
       .login-logo h1 { font-size: 1.15rem; }
+
+      .dash-header,
+      .stats-row,
+      .table-wrap {
+        margin: 10px;
+      }
 
       .stats-row { gap: 8px; }
       .stat-card { padding: 12px; }
       .stat-value { font-size: 1.2rem; }
 
-      .submission-card { padding: 14px 12px; }
-      .card-message { font-size: 0.8rem; }
+      table {
+        min-width: 720px;
+      }
+
+      th, td {
+        padding: 10px 12px;
+      }
     }
   </style>
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
 <div id="login-section">
   <div class="login-logo">
     <div class="shield">
@@ -671,7 +652,6 @@ export const prerender = false;
   </div>
 </div>
 
-<!-- ── DASHBOARD ── -->
 <div id="admin-section">
   <div class="dash-header">
     <div class="dash-title">
@@ -684,7 +664,6 @@ export const prerender = false;
     </button>
   </div>
 
-  <!-- Stats -->
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Total Messages</div>
@@ -701,7 +680,6 @@ export const prerender = false;
     </div>
   </div>
 
-  <!-- Desktop Table -->
   <div class="table-wrap">
     <div class="table-toolbar">
       <span id="table-info">All messages</span>
@@ -723,11 +701,6 @@ export const prerender = false;
         </tbody>
       </table>
     </div>
-  </div>
-
-  <!-- Mobile Cards -->
-  <div class="mobile-cards" id="mobile-cards">
-    <div class="empty-state"><p>Loading…</p></div>
   </div>
 </div>
 
@@ -780,17 +753,30 @@ export const prerender = false;
     if (!dateStr) return '—';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    } catch { return dateStr; }
+      return d.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateStr;
+    }
   }
 
   function esc(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
   }
 
   function showToast(msg, type) {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
+
     const t = document.createElement('div');
     t.className = 'toast';
     const color = type === 'success' ? '#22c55e' : '#ef4444';
@@ -801,24 +787,38 @@ export const prerender = false;
 
   async function del(id) {
     if (!confirm('Delete this submission?')) return;
-    const res = await fetch('/api/admin/submissions?id=' + id, { method: 'DELETE', credentials: 'same-origin' });
-    if (res.ok) { showToast('Deleted successfully', 'success'); loadSubmissions(); }
-    else showToast('Failed to delete', 'error');
+    const res = await fetch('/api/admin/submissions?id=' + id, {
+      method: 'DELETE',
+      credentials: 'same-origin'
+    });
+
+    if (res.ok) {
+      showToast('Deleted successfully', 'success');
+      loadSubmissions();
+    } else {
+      showToast('Failed to delete', 'error');
+    }
   }
 
   async function loadSubmissions() {
     const res = await fetch('/api/admin/submissions', { credentials: 'same-origin' });
-    if (res.status === 401) { location.reload(); return; }
+    if (res.status === 401) {
+      location.reload();
+      return;
+    }
+
     const json = await res.json();
     const data = json.data || [];
 
-    // Update stats
-    document.getElementById('count-badge').textContent = data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
+    document.getElementById('count-badge').textContent =
+      data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
+
     document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-latest').textContent = data.length ? esc(data[0].name) : '—';
-    document.getElementById('stat-latest-email').textContent = data.length ? esc(data[0].email) : 'No submissions yet';
+    document.getElementById('stat-latest').textContent = data.length ? data[0].name : '—';
+    document.getElementById('stat-latest-email').textContent = data.length ? data[0].email : 'No submissions yet';
     document.getElementById('stat-latest-date').textContent = data.length ? formatDate(data[0].submitted_at) : '—';
-    document.getElementById('table-info').textContent = data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
+    document.getElementById('table-info').textContent =
+      data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
 
     const emptyHtml = `<div class="empty-state">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -826,58 +826,30 @@ export const prerender = false;
       <p class="empty-sub">Contact form entries will appear here.</p>
     </div>`;
 
-    // Desktop table
     const tbody = document.getElementById('submissions-body');
+
     if (!data.length) {
       tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
-    } else {
-      tbody.innerHTML = data.map((row, i) => `
-        <tr id="row-${row.id}">
-          <td class="td-num">${i + 1}</td>
-          <td class="td-name">${esc(row.name)}</td>
-          <td class="td-email"><a href="mailto:${esc(row.email)}">${esc(row.email)}</a></td>
-          <td class="td-message">${esc(row.message)}</td>
-          <td class="td-date">${formatDate(row.submitted_at)}</td>
-          <td>
-            <button class="btn-delete" onclick="del(${row.id})">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              Delete
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      return;
     }
 
-    // Mobile cards
-    const mobileEl = document.getElementById('mobile-cards');
-    if (!data.length) {
-      mobileEl.innerHTML = emptyHtml;
-    } else {
-      mobileEl.innerHTML = data.map((row, i) => `
-        <div class="submission-card" id="card-${row.id}">
-          <div class="card-top">
-            <div>
-              <div class="card-name">${esc(row.name)}</div>
-              <div class="card-date">${formatDate(row.submitted_at)}</div>
-            </div>
-          </div>
-          <div class="card-email">
-            <a href="mailto:${esc(row.email)}">${esc(row.email)}</a>
-          </div>
-          <div class="card-message">${esc(row.message)}</div>
-          <div class="card-footer">
-            <span class="card-num">#${i + 1}</span>
-            <button class="btn-delete" onclick="del(${row.id})">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              Delete
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
+    tbody.innerHTML = data.map((row, i) => `
+      <tr id="row-${row.id}">
+        <td class="td-num">${i + 1}</td>
+        <td class="td-name">${esc(row.name)}</td>
+        <td class="td-email"><a href="mailto:${esc(row.email)}">${esc(row.email)}</a></td>
+        <td class="td-message">${esc(row.message)}</td>
+        <td class="td-date">${formatDate(row.submitted_at)}</td>
+        <td>
+          <button class="btn-delete" onclick="del(${row.id})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Delete
+          </button>
+        </td>
+      </tr>
+    `).join('');
   }
 
-  // Auto login check
   fetch('/api/admin/submissions', { credentials: 'same-origin' }).then(res => {
     if (res.ok) showDashboard();
   });
