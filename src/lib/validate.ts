@@ -13,9 +13,7 @@ export interface ContactFormData {
 
 export type ValidationErrors = Partial<Record<keyof ContactFormData, string>>;
 
-// Gmail-only email validation
 const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
-
 /**
  * Validate a contact form submission.
  * Returns an object of field -> error message.
@@ -37,7 +35,7 @@ export function validateContactForm(data: ContactFormData): ValidationErrors {
   if (!email) {
     errors.email = "Email is required.";
   } else if (!EMAIL_RE.test(email)) {
-    errors.email = "Please enter a valid Gmail address.";
+    errors.email = "Please enter a valid email address.";
   } else if (email.length > 254) {
     errors.email = "Email address is too long.";
   }
@@ -58,10 +56,11 @@ export function validateContactForm(data: ContactFormData): ValidationErrors {
  * Returns true if all fields are present and non-empty strings.
  * Useful for a quick pre-check before running full validation.
  */
-export function hasRequiredFields(data: unknown): data is ContactFormData {
+export function hasRequiredFields(
+  data: unknown
+): data is ContactFormData {
   if (typeof data !== "object" || data === null) return false;
   const d = data as Record<string, unknown>;
-
   return (
     typeof d.name === "string" &&
     typeof d.email === "string" &&
