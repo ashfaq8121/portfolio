@@ -2,8 +2,7 @@
 import { env as cfEnv } from "cloudflare:workers";
 
 const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
-
-const RATE_LIMIT = 5;
+const RATE_LIMIT =3;
 const RATE_WINDOW_SECONDS = 3600; // 1 hour
 
 interface ContactResponse {
