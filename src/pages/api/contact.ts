@@ -3,11 +3,19 @@ import { env as cfEnv } from "cloudflare:workers";
 
 const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
 
+const RATE_LIMIT = 5;
+const RATE_WINDOW_SECONDS = 3600; // 1 hour
+
 interface ContactResponse {
   ok: boolean;
   error?: string;
   errors?: Record<string, string>;
   message?: string;
+}
+
+interface RateLimitData {
+  count: number;
+  expiresAt: number;
 }
 
 function json(body: ContactResponse, status = 200): Response {
@@ -38,8 +46,10 @@ export const OPTIONS: APIRoute = async () =>
 
 export const POST: APIRoute = async ({ request }): Promise<Response> => {
   let name = "", email = "", message = "";
+
   try {
     const ct = request.headers.get("Content-Type") ?? "";
+
     if (ct.includes("application/json")) {
       const b = (await request.json()) as any;
       name = b.name ?? "";
@@ -60,35 +70,87 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   message = stripHtml(message);
 
   const errors: Record<string, string> = {};
+
   if (!name) errors.name = "Name is required.";
   else if (name.length < 2) errors.name = "Name must be at least 2 characters.";
   else if (name.length > 100) errors.name = "Name must be 100 characters or fewer.";
 
   if (!email) errors.email = "Email is required.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errors.email = "Please enter a valid email address.";
-  else if (email.length > 254) errors.email = "Email address is too long.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errors.email = "Please enter a valid email address.";
+  } else if (email.length > 254) {
+    errors.email = "Email address is too long.";
+  }
 
   if (!message) errors.message = "Message is required.";
   else if (message.length < 10) errors.message = "Message must be at least 10 characters.";
   else if (message.length > 4000) errors.message = "Message must be 4,000 characters or fewer.";
 
-  if (Object.keys(errors).length > 0) return json({ ok: false, errors }, 422);
+  if (Object.keys(errors).length > 0) {
+    return json({ ok: false, errors }, 422);
+  }
 
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-
-  // Step 1 — Save to D1 (always runs)
+  const kv = (cfEnv as any).RATE_LIMIT_KV;
   const db = (cfEnv as any).DB;
+
+  // ── Fixed-window rate limit ──────────────────────────────────────────────
+  if (kv) {
+    try {
+      const key = `ratelimit:${ip}`;
+      const now = Math.floor(Date.now() / 1000);
+
+      const stored = await kv.get<RateLimitData>(key, { type: "json" });
+
+      if (!stored || now >= stored.expiresAt) {
+        // No key or window expired — fresh start
+        const freshData: RateLimitData = {
+          count: 1,
+          expiresAt: now + RATE_WINDOW_SECONDS,
+        };
+
+        await kv.put(key, JSON.stringify(freshData), {
+          expiration: freshData.expiresAt,
+        });
+      } else {
+        if (stored.count >= RATE_LIMIT) {
+          return json(
+            { ok: false, error: "Too many messages. Please try again in an hour." },
+            429
+          );
+        }
+
+        // Under the limit — increment count
+        const updatedData: RateLimitData = {
+          count: stored.count + 1,
+          expiresAt: stored.expiresAt,
+        };
+
+        await kv.put(key, JSON.stringify(updatedData), {
+          expiration: updatedData.expiresAt,
+        });
+      }
+    } catch (err) {
+      console.error("KV rate-limit error:", err);
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
+  // Save allowed submission to D1
   if (db) {
     try {
-      await db.prepare(
-        `INSERT INTO contact_submissions (name, email, message, ip) VALUES (?, ?, ?, ?)`
-      ).bind(name, email, message, ip).run();
+      await db
+        .prepare(
+          `INSERT INTO contact_submissions (name, email, message, ip) VALUES (?, ?, ?, ?)`
+        )
+        .bind(name, email, message, ip)
+        .run();
     } catch (err) {
       console.error("D1 save error:", err);
     }
   }
 
-  // Step 2 — Send email via Web3Forms
+  // Send email only for allowed submissions
   try {
     const res = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
@@ -111,12 +173,9 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     }
 
     console.error("Web3Forms error:", data);
-    // D1 already saved — still return success to user
     return json({ ok: true, message: "Message sent! I will get back to you soon." });
-
   } catch (err) {
     console.error("Web3Forms fetch error:", err);
-    // D1 already saved — still return success to user
     return json({ ok: true, message: "Message sent! I will get back to you soon." });
   }
 };
