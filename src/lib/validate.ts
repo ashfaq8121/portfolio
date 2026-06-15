@@ -14,8 +14,7 @@ export interface ContactFormData {
 export type ValidationErrors = Partial<Record<keyof ContactFormData, string>>;
 
 // General email validation (RFC 5322 simplified)
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /**
  * Validate a contact form submission.
  * Returns an object of field -> error message.
