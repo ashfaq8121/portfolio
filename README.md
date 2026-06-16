@@ -67,11 +67,6 @@ my-portfolio/
 │   │       ├── index.astro     # Blog list page
 │   │       └── [slug].astro    # Individual blog post page
 │   └── styles/                 # Global CSS variables and reset
-├── worker/
-│   ├── index.ts                # Worker entry point and request router
-│   └── api/
-│       ├── contact.ts          # Contact form handler (email + D1 save + rate limit)
-│       └── contact.test.ts     # Unit tests
 ├── astro.config.mjs            # Astro configuration
 ├── wrangler.toml               # Cloudflare Workers, KV, and D1 configuration
 ├── package.json                # Dependencies and scripts
