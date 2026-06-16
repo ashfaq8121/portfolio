@@ -2,7 +2,7 @@
 import { env as cfEnv } from "cloudflare:workers";
 
 const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
-const RATE_LIMIT =3;
+const RATE_LIMIT = 3;
 const RATE_WINDOW_SECONDS = 3600; // 1 hour
 
 interface ContactResponse {
@@ -43,6 +43,9 @@ export const OPTIONS: APIRoute = async () =>
     },
   });
 
+// Gmail-only regex
+const GMAIL_RE = /^[^\s@]+@gmail\.com$/i;
+
 export const POST: APIRoute = async ({ request }): Promise<Response> => {
   let name = "", email = "", message = "";
 
@@ -70,20 +73,34 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
 
   const errors: Record<string, string> = {};
 
-  if (!name) errors.name = "Name is required.";
-  else if (name.length < 2) errors.name = "Name must be at least 2 characters.";
-  else if (name.length > 100) errors.name = "Name must be 100 characters or fewer.";
-
-  if (!email) errors.email = "Email is required.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    errors.email = "Please enter a valid email address.";
-  } else if (email.length > 254) {
-    errors.email = "Email address is too long.";
+  // Name validation
+  if (!name) {
+    errors.name = "Name is required.";
+  } else if (name.length < 2) {
+    errors.name = "Name must be at least 2 characters.";
+  } else if (name.length > 100) {
+    errors.name = "Name must be 100 characters or fewer.";
   }
 
-  if (!message) errors.message = "Message is required.";
-  else if (message.length < 10) errors.message = "Message must be at least 10 characters.";
-  else if (message.length > 4000) errors.message = "Message must be 4,000 characters or fewer.";
+  // Email validation — order: empty → too long → invalid format → non-Gmail
+  if (!email) {
+    errors.email = "Email is required.";
+  } else if (email.length > 254) {
+    errors.email = "Email address is too long.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errors.email = "Please enter a valid email address.";
+  } else if (!GMAIL_RE.test(email)) {
+    errors.email = "Only Gmail addresses are accepted (e.g. yourname@gmail.com).";
+  }
+
+  // Message validation
+  if (!message) {
+    errors.message = "Message is required.";
+  } else if (message.length < 10) {
+    errors.message = "Message must be at least 10 characters.";
+  } else if (message.length > 4000) {
+    errors.message = "Message must be 4,000 characters or fewer.";
+  }
 
   if (Object.keys(errors).length > 0) {
     return json({ ok: false, errors }, 422);
@@ -99,19 +116,19 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
       const key = `ratelimit:${ip}`;
       const now = Math.floor(Date.now() / 1000);
 
-      const stored = await kv.get<RateLimitData>(key, { type: "json" });
+      const stored = (await kv.get(key, { type: "json" })) as RateLimitData | null;
 
       if (!stored || now >= stored.expiresAt) {
-        // No key or window expired — fresh start
+        // No key or window expired — fresh start at count 1
         const freshData: RateLimitData = {
           count: 1,
           expiresAt: now + RATE_WINDOW_SECONDS,
         };
-
         await kv.put(key, JSON.stringify(freshData), {
           expiration: freshData.expiresAt,
         });
       } else {
+        // Window still active — block if already at limit
         if (stored.count >= RATE_LIMIT) {
           return json(
             { ok: false, error: "Too many messages. Please try again in an hour." },
@@ -119,12 +136,11 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
           );
         }
 
-        // Under the limit — increment count
+        // Under the limit — increment and save before proceeding
         const updatedData: RateLimitData = {
           count: stored.count + 1,
           expiresAt: stored.expiresAt,
         };
-
         await kv.put(key, JSON.stringify(updatedData), {
           expiration: updatedData.expiresAt,
         });
@@ -149,7 +165,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     }
   }
 
-  // Send email only for allowed submissions
+  // Send email via Web3Forms
   try {
     const res = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
