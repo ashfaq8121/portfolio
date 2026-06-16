@@ -30,7 +30,7 @@ My personal portfolio website built with Astro and deployed on Cloudflare Worker
 | TypeScript | Writing safe and clean code |
 | CSS | Styling and dark mode |
 | Cloudflare Workers | Hosting the site and running all API routes |
-| Cloudflare KV | Rate limiting the contact form (max 5 per IP per hour) |
+| Cloudflare KV | Rate limiting the contact form (max 3 per IP per hour) |
 | Cloudflare D1 | Storing contact form submissions in a SQLite database |
 | Web3Forms | Sending contact form emails to my inbox |
 | Vitest | Unit tests |
@@ -55,14 +55,22 @@ my-portfolio/
 ├── src/
 │   ├── components/             # Reusable components (Nav, Footer, BlogCard, etc.)
 │   ├── layouts/                # BaseLayout and BlogLayout
+│   ├── lib/
+│   │   ├── validate.ts         # Shared validation logic (name, Gmail-only email, message)
+│   │   └── validate.test.ts    # Unit tests for validation logic
 │   ├── pages/                  # All pages and routes
 │   │   ├── index.astro         # Home page
 │   │   ├── about.astro         # About page
 │   │   ├── projects.astro      # Projects page
 │   │   ├── contact.astro       # Contact page
-│   │   ├── admin.astro         # Admin dashboard (password-protected)
+│   │   ├── admin.astro         # Admin dashboard (password-protected, timestamps in IST)
 │   │   ├── 404.astro           # Not found page
 │   │   ├── rss.xml.ts          # RSS feed
+│   │   ├── api/ADMIN/
+|   |   |   |       |___ login.ts
+|   |   |   |        |___ logout.ts
+|   |   |   |        |___ submission.ts
+│   │   │   └── contact.ts      # Contact form handler (validation + KV rate limit + D1 save + email)
 │   │   └── blog/
 │   │       ├── index.astro     # Blog list page
 │   │       └── [slug].astro    # Individual blog post page
@@ -82,10 +90,19 @@ my-portfolio/
 ## How the Contact Form Works
 
 1. User submits the form on `/contact`
-2. The Worker checks rate limiting via **Cloudflare KV** — max 5 submissions per IP per hour
-3. The submission is saved to **Cloudflare D1** (`contact_submissions` table)
-4. An email notification is sent via **Web3Forms**
-5. The admin can view all submissions at `/admin`
+2. Input is validated — only **Gmail addresses** (`@gmail.com`) are accepted
+3. The Worker checks rate limiting via **Cloudflare KV** — max 3 submissions per IP per hour
+4. The submission is saved to **Cloudflare D1** (`contact_submissions` table)
+5. An email notification is sent via **Web3Forms**
+6. The admin can view all submissions at `/admin`
+
+### Validation Rules
+
+| Field | Rules |
+|---|---|
+| Name | Required, 2–100 characters |
+| Email | Required, must be a valid `@gmail.com` address |
+| Message | Required, 10–4,000 characters |
 
 ### D1 Database Schema
 
@@ -111,6 +128,7 @@ The `/admin` page is a password-protected dashboard that shows all contact form 
 
 - Login uses an **HttpOnly session cookie** (safe from XSS)
 - Submissions are listed with name, email, message, and timestamp
+- All timestamps are displayed in **IST (Indian Standard Time, UTC+5:30)**
 - Supports soft-delete so records can be hidden without being erased
 - Styled with dark UI using Inter font and Indigo accent colors
 
