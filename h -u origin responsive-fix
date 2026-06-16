@@ -1,0 +1,27 @@
+  add-documentation[m
+  add-rss-button[m
+  feat/ext-1-backend-data[m
+  final-fixes[m
+  fix-astro-v6-env[m
+  fix-blog-rss[m
+  fix-deploy-workflow[m
+  fix-node-version[m
+  main[m
+* [32mresponsive-fix[m
+  update-docs[m
+  update-portfolio-ui[m
+  [31mremotes/origin/HEAD[m -> origin/main
+  [31mremotes/origin/add-documentation[m
+  [31mremotes/origin/add-rss-button[m
+  [31mremotes/origin/feat/ext-1-backend-data[m
+  [31mremotes/origin/final-fixes[m
+  [31mremotes/origin/fix-astro-v6-env[m
+  [31mremotes/origin/fix-blog-rss[m
+  [31mremotes/origin/fix-deploy-workflow[m
+  [31mremotes/origin/fix-node-version[m
+  [31mremotes/origin/gh-pages[m
+  [31mremotes/origin/main[m
+  [31mremotes/origin/responsive-fix[m
+  [31mremotes/origin/ui-fixes[m
+  [31mremotes/origin/update-docs[m
+  [31mremotes/origin/update-portfolio-ui[m
