@@ -15,6 +15,9 @@ export type ValidationErrors = Partial<Record<keyof ContactFormData, string>>;
 
 // General email validation (RFC 5322 simplified)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// Gmail-specific validation — only @gmail.com addresses are accepted
+const GMAIL_RE = /^[^\s@]+@gmail\.com$/i;
 /**
  * Validate a contact form submission.
  * Returns an object of field -> error message.
@@ -39,6 +42,8 @@ export function validateContactForm(data: ContactFormData): ValidationErrors {
     errors.email = "Email address is too long.";
   } else if (!EMAIL_RE.test(email)) {
     errors.email = "Please enter a valid email address.";
+  } else if (!GMAIL_RE.test(email)) {
+    errors.email = "Only Gmail addresses are accepted (e.g. yourname@gmail.com).";
   }
 
   const message = data.message?.trim() ?? "";

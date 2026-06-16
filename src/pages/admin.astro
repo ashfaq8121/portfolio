@@ -692,7 +692,7 @@ export const prerender = false;
             <th>Name</th>
             <th>Email</th>
             <th>Message</th>
-            <th>Date (UTC)</th>
+            <th>Date (PKT)</th>
             <th></th>
           </tr>
         </thead>
@@ -754,6 +754,7 @@ export const prerender = false;
     try {
       const d = new Date(dateStr);
       return d.toLocaleString('en-US', {
+        timeZone: 'Asia/Karachi',
         month: 'short',
         day: 'numeric',
         year: 'numeric',
