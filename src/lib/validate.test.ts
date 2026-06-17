@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateContactForm, hasRequiredFields } from "../src/lib/validate";
+import { validateContactForm, hasRequiredFields } from "./validate";
 
 const valid = {
   name: "Ashfaq Ur Rahman",
