@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Ashfaq Portfolio API
+  version: 1.0.0
+  description: Public API for blog posts and GitHub repositories
+
+servers:
+  - url: https://portfolio.ashfaq-portfolio.workers.dev
+    description: Production
+
+paths:
+  /api/posts:
+    get:
+      summary: Get all blog posts
+      operationId: getPosts
+      responses:
+        "200":
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  posts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Post"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/posts/{slug}:
+    get:
+      summary: Get a single blog post by slug
+      operationId: getPostBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A single blog post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  post:
+                    $ref: "#/components/schemas/Post"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/github:
+    get:
+      summary: Get public GitHub repositories
+      operationId: getGithubRepos
+      responses:
+        "200":
+          description: List of GitHub repos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  repos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Repo"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          nullable: true
+        url:
+          type: string
+
+    Repo:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        url:
+          type: string
+        stars:
+          type: integer
+        language:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
+    ServiceUnavailable:
+      description: External service unavailable
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
