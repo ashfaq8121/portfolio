@@ -70,7 +70,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <form
           id="contact-form"
           class="contact-form"
-          action="/api/contact/send-otp"
+          action="/api/contact"
           method="POST"
           novalidate
           aria-label="Contact form"
@@ -93,25 +93,59 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <span class="form-error" id="name-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <!-- Email -->
+          <!-- Email + inline verify -->
           <div class="form-group">
             <label class="form-label" for="email">
               Email <span class="required" aria-hidden="true">*</span>
             </label>
-            <input
-              class="form-input"
-              type="email"
-              id="email"
-              name="email"
-              autocomplete="email"
-              required
-              aria-required="true"
-              aria-describedby="email-error"
-            />
+            <div style="display:flex; gap: 8px;">
+              <input
+                class="form-input"
+                type="email"
+                id="email"
+                name="email"
+                autocomplete="email"
+                required
+                aria-required="true"
+                aria-describedby="email-error"
+                style="flex:1;"
+              />
+              <button type="button" id="verify-email-btn" class="btn" style="white-space:nowrap; background:transparent; border:1px solid var(--color-border, #333);">
+                Verify email
+              </button>
+            </div>
             <span class="form-error" id="email-error" role="alert" aria-live="polite"></span>
+
+            <!-- Inline OTP box — hidden until "Verify email" is clicked -->
+            <div id="otp-inline" hidden style="margin-top: 10px; padding: 12px; border: 1px solid var(--color-border, #333); border-radius: 10px;">
+              <p style="margin: 0 0 8px 0; font-size: 0.875rem; opacity: 0.8;">
+                Enter the 6-digit code sent to <strong id="otp-email-display"></strong>
+              </p>
+              <div style="display:flex; gap: 8px; align-items:flex-start;">
+                <input
+                  class="form-input"
+                  type="text"
+                  id="otp-code"
+                  inputmode="numeric"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  placeholder="000000"
+                  style="flex:1;"
+                />
+                <button type="button" id="confirm-otp-btn" class="btn btn-primary" style="white-space:nowrap;">
+                  Confirm
+                </button>
+              </div>
+              <span class="form-error" id="otp-error" role="alert" aria-live="polite" style="display:block; margin-top: 4px;"></span>
+            </div>
+
+            <!-- Verified confirmation badge -->
+            <p id="email-verified-badge" hidden style="margin-top: 8px; font-size: 0.875rem; color: #22c55e; display:flex; align-items:center; gap: 6px;">
+              ✓ Email verified
+            </p>
           </div>
 
-          <!-- Message -->
+          <!-- Message — disabled until email is verified -->
           <div class="form-group">
             <label class="form-label" for="message">
               Message <span class="required" aria-hidden="true">*</span>
@@ -122,13 +156,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               name="message"
               rows="6"
               required
+              disabled
               aria-required="true"
               aria-describedby="message-error"
+              placeholder="Verify your email above to write your message"
             ></textarea>
             <span class="form-error" id="message-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
+          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn" disabled>
             <span class="btn-text">Send message</span>
             <span class="btn-spinner" aria-hidden="true" hidden>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -138,42 +174,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               Sending…
             </span>
           </button>
-        </form>
-
-        <!-- OTP verification step — hidden until an OTP has been sent -->
-        <form id="otp-form" class="contact-form" novalidate hidden aria-label="Verify your email">
-          <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary);">
-            We sent a 6-digit code to <strong id="otp-email-display"></strong>. Enter it below to send your message.
-          </p>
-          <div class="form-group">
-            <label class="form-label" for="otp-code">Verification code</label>
-            <input
-              class="form-input"
-              type="text"
-              id="otp-code"
-              name="otp"
-              inputmode="numeric"
-              maxlength="6"
-              autocomplete="one-time-code"
-              aria-describedby="otp-error"
-            />
-            <span class="form-error" id="otp-error" role="alert" aria-live="polite"></span>
-          </div>
-          <div style="display:flex; gap: var(--space-3); align-items:center;">
-            <button type="submit" class="btn btn-primary btn-submit" id="otp-submit-btn">
-              <span class="btn-text">Verify &amp; send</span>
-              <span class="btn-spinner" aria-hidden="true" hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-                Verifying…
-              </span>
-            </button>
-            <button type="button" id="otp-cancel-btn" class="btn" style="background:transparent; border:1px solid var(--color-border);">
-              Cancel
-            </button>
-          </div>
         </form>
       </div>
     </div>
@@ -268,24 +268,25 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </style>
 
 <script>
-  const form = document.getElementById("contact-form") as HTMLFormElement | null;
-  const submitBtn = document.getElementById("submit-btn");
-  const btnText = submitBtn?.querySelector(".btn-text");
-  const btnSpinner = submitBtn?.querySelector(".btn-spinner");
+  const form = document.getElementById("contact-form");
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement | null;
+  const btnText = submitBtn?.querySelector(".btn-text") as HTMLElement | null;
+  const btnSpinner = submitBtn?.querySelector(".btn-spinner") as HTMLElement | null;
   const successEl = document.getElementById("form-success");
   const errorEl = document.getElementById("form-error");
   const errorMsg = document.getElementById("form-error-message");
 
-  const otpForm = document.getElementById("otp-form") as HTMLFormElement | null;
+  const emailInput = document.getElementById("email") as HTMLInputElement | null;
+  const verifyBtn = document.getElementById("verify-email-btn") as HTMLButtonElement | null;
+  const otpInline = document.getElementById("otp-inline");
+  const otpEmailDisplay = document.getElementById("otp-email-display");
   const otpInput = document.getElementById("otp-code") as HTMLInputElement | null;
   const otpError = document.getElementById("otp-error");
-  const otpEmailDisplay = document.getElementById("otp-email-display");
-  const otpSubmitBtn = document.getElementById("otp-submit-btn");
-  const otpBtnText = otpSubmitBtn?.querySelector(".btn-text");
-  const otpBtnSpinner = otpSubmitBtn?.querySelector(".btn-spinner");
-  const otpCancelBtn = document.getElementById("otp-cancel-btn");
+  const confirmOtpBtn = document.getElementById("confirm-otp-btn") as HTMLButtonElement | null;
+  const verifiedBadge = document.getElementById("email-verified-badge");
+  const messageInput = document.getElementById("message") as HTMLTextAreaElement | null;
 
-  let pendingRequestId: string | null = null;
+  let verifiedEmail: string | null = null;
 
   function setFieldError(fieldId: string, message: string) {
     const input = document.getElementById(fieldId);
@@ -299,53 +300,127 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   function setLoading(on: boolean) {
-    if (submitBtn) (submitBtn as HTMLButtonElement).disabled = on;
-    if (btnText) (btnText as HTMLElement).hidden = on;
-    if (btnSpinner) (btnSpinner as HTMLElement).hidden = !on;
+    if (submitBtn) submitBtn.disabled = on || !verifiedEmail;
+    if (btnText) btnText.hidden = on;
+    if (btnSpinner) btnSpinner.hidden = !on;
   }
 
-  function setOtpLoading(on: boolean) {
-    if (otpSubmitBtn) (otpSubmitBtn as HTMLButtonElement).disabled = on;
-    if (otpBtnText) (otpBtnText as HTMLElement).hidden = on;
-    if (otpBtnSpinner) (otpBtnSpinner as HTMLElement).hidden = !on;
+  function lockMessageField(unlocked: boolean) {
+    if (messageInput) {
+      messageInput.disabled = !unlocked;
+      messageInput.placeholder = unlocked ? "" : "Verify your email above to write your message";
+    }
+    if (submitBtn) submitBtn.disabled = !unlocked;
   }
+
+  function isGmail(email: string) {
+    return /^[^\s@]+@gmail\.com$/i.test(email);
+  }
+
+  // ── "Verify email" button: sends the OTP ──
+  verifyBtn?.addEventListener("click", async () => {
+    setFieldError("email", "");
+    const email = emailInput?.value?.trim() ?? "";
+
+    if (!email) { setFieldError("email", "Email is required."); return; }
+    if (!isGmail(email)) { setFieldError("email", "Only Gmail addresses are accepted (e.g. yourname@gmail.com)."); return; }
+
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = "Sending…";
+
+    try {
+      const res = await fetch("/api/contact/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
+        if (otpInline) (otpInline as HTMLElement).hidden = false;
+        if (otpEmailDisplay) otpEmailDisplay.textContent = email;
+        if (emailInput) emailInput.disabled = true; // lock email while verifying
+        otpInput?.focus();
+      } else {
+        setFieldError("email", body.error ?? "Could not send verification code.");
+      }
+    } catch {
+      setFieldError("email", "Could not reach the server. Please check your connection.");
+    } finally {
+      verifyBtn.disabled = false;
+      verifyBtn.textContent = "Verify email";
+    }
+  });
+
+  // ── "Confirm" button: checks the OTP, unlocks the message field ──
+  confirmOtpBtn?.addEventListener("click", async () => {
+    if (otpError) otpError.textContent = "";
+    const email = emailInput?.value?.trim() ?? "";
+    const otp = otpInput?.value?.trim() ?? "";
+
+    if (!otp) { if (otpError) otpError.textContent = "Please enter the code from your email."; return; }
+
+    confirmOtpBtn.disabled = true;
+    confirmOtpBtn.textContent = "Checking…";
+
+    try {
+      const res = await fetch("/api/contact/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
+        verifiedEmail = email;
+        if (otpInline) (otpInline as HTMLElement).hidden = true;
+        if (verifyBtn) (verifyBtn as HTMLElement).hidden = true;
+        if (verifiedBadge) (verifiedBadge as HTMLElement).hidden = false;
+        lockMessageField(true);
+        messageInput?.focus();
+      } else {
+        if (otpError) otpError.textContent = body.error ?? "Incorrect code. Please try again.";
+      }
+    } catch {
+      if (otpError) otpError.textContent = "Could not reach the server. Please check your connection.";
+    } finally {
+      confirmOtpBtn.disabled = false;
+      confirmOtpBtn.textContent = "Confirm";
+    }
+  });
+
+  // If the user edits the email after verifying, they must verify again.
+  emailInput?.addEventListener("input", () => {
+    if (verifiedEmail && emailInput.value.trim() !== verifiedEmail) {
+      verifiedEmail = null;
+      if (verifiedBadge) (verifiedBadge as HTMLElement).hidden = true;
+      if (verifyBtn) (verifyBtn as HTMLElement).hidden = false;
+      lockMessageField(false);
+    }
+  });
 
   function validate(data: { name: string; email: string; message: string }) {
     const errors: Record<string, string> = {};
     if (data.name.trim().length < 2) errors.name = "Please enter your name (at least 2 characters).";
-    if (!/^[^\s@]+@gmail\.com$/i.test(data.email)) errors.email = "Only Gmail addresses are accepted (e.g. yourname@gmail.com).";
     if (data.message.trim().length < 10) errors.message = "Please enter a message (at least 10 characters).";
     return errors;
   }
 
-  function showOtpStep(email: string) {
-    if (form) form.hidden = true;
-    if (otpForm) {
-      otpForm.hidden = false;
-      if (otpEmailDisplay) otpEmailDisplay.textContent = email;
-      otpInput?.focus();
-    }
-  }
-
-  function backToFormStep() {
-    pendingRequestId = null;
-    if (otpForm) otpForm.hidden = true;
-    if (otpInput) otpInput.value = "";
-    if (otpError) otpError.textContent = "";
-    if (form) form.hidden = false;
-  }
-
-  // ── Step 1: submit name/email/message → request an OTP ──
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors();
     if (successEl) successEl.hidden = true;
     if (errorEl) errorEl.hidden = true;
 
+    if (!verifiedEmail) {
+      setFieldError("email", "Please verify your email first.");
+      return;
+    }
+
     const data = {
       name: (document.getElementById("name") as HTMLInputElement)?.value?.trim() ?? "",
-      email: (document.getElementById("email") as HTMLInputElement)?.value?.trim() ?? "",
-      message: (document.getElementById("message") as HTMLTextAreaElement)?.value?.trim() ?? "",
+      email: verifiedEmail,
+      message: messageInput?.value?.trim() ?? "",
     };
 
     const errors = validate(data);
@@ -358,18 +433,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     setLoading(true);
 
     try {
-      const res = await fetch("/api/contact/send-otp", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       const body = await res.json().catch(() => ({}));
 
       if (res.ok && body.ok) {
-        pendingRequestId = body.requestId;
-        showOtpStep(data.email);
-      } else if (body.errors) {
-        Object.entries(body.errors).forEach(([field, msg]) => setFieldError(field, msg as string));
+        (form as HTMLFormElement).reset();
+        verifiedEmail = null;
+        if (emailInput) emailInput.disabled = false;
+        if (verifiedBadge) (verifiedBadge as HTMLElement).hidden = true;
+        if (verifyBtn) (verifyBtn as HTMLElement).hidden = false;
+        lockMessageField(false);
+        if (successEl) successEl.hidden = false;
       } else {
         if (errorMsg) errorMsg.textContent = body.error ?? "Something went wrong. Please try again.";
         if (errorEl) errorEl.hidden = false;
@@ -381,41 +460,4 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       setLoading(false);
     }
   });
-
-  // ── Step 2: submit the OTP code → verify, save, and send the real email ──
-  otpForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (otpError) otpError.textContent = "";
-
-    const otp = otpInput?.value?.trim() ?? "";
-    if (!otp || !pendingRequestId) {
-      if (otpError) otpError.textContent = "Please enter the code from your email.";
-      return;
-    }
-
-    setOtpLoading(true);
-
-    try {
-      const res = await fetch("/api/contact/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId: pendingRequestId, otp }),
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (res.ok && body.ok) {
-        backToFormStep();
-        form?.reset();
-        if (successEl) successEl.hidden = false;
-      } else {
-        if (otpError) otpError.textContent = body.error ?? "Incorrect code. Please try again.";
-      }
-    } catch {
-      if (otpError) otpError.textContent = "Could not reach the server. Please check your connection.";
-    } finally {
-      setOtpLoading(false);
-    }
-  });
-
-  otpCancelBtn?.addEventListener("click", backToFormStep);
 </script>
