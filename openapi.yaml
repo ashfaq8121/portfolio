@@ -90,11 +90,29 @@ components:
         description:
           type: string
           nullable: true
-        publishedAt:
+        pubDate:
           type: string
-          nullable: true
+          description: ISO 8601 date string
+        tags:
+          type: array
+          items:
+            type: string
+        minutesRead:
+          type: integer
         url:
           type: string
+        content:
+          type: object
+          description: Only present on the single-post endpoint (GET /api/posts/{slug}), not on the list endpoint.
+          properties:
+            intro:
+              type: string
+            points:
+              type: array
+              items:
+                type: string
+            closing:
+              type: string
 
     Repo:
       type: object
