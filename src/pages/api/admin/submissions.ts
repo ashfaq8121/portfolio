@@ -3,17 +3,30 @@ import { env as cfEnv } from "cloudflare:workers";
 
 export const prerender = false;
 
-function isAuthed(request: Request, adminPassword: string): boolean {
+// Reads the admin_token cookie and checks it against a valid session
+// stored in KV — never compares against the real password anymore.
+async function isAuthed(request: Request, kv: any): Promise<boolean> {
+  if (!kv) return false;
+
   const cookie = request.headers.get("Cookie") ?? "";
-  const token = cookie.split(";").find(c => c.trim().startsWith("admin_token="));
-  return token?.split("=")[1]?.trim() === adminPassword;
+  const tokenMatch = cookie.split(";").find((c) => c.trim().startsWith("admin_token="));
+  const token = tokenMatch?.split("=")[1]?.trim();
+  if (!token) return false;
+
+  try {
+    const session = await kv.get(`admin-session:${token}`);
+    return session !== null;
+  } catch (err) {
+    console.error("Admin session check error:", err);
+    return false;
+  }
 }
 
 export const GET: APIRoute = async ({ request }): Promise<Response> => {
-  const adminPassword = (cfEnv as any).ADMIN_PASSWORD;
+  const kv = (cfEnv as any).RATE_LIMIT_KV;
   const db = (cfEnv as any).DB;
 
-  if (!adminPassword || !isAuthed(request, adminPassword)) {
+  if (!(await isAuthed(request, kv))) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized." }), { status: 401 });
   }
 
@@ -27,10 +40,10 @@ export const GET: APIRoute = async ({ request }): Promise<Response> => {
 };
 
 export const DELETE: APIRoute = async ({ request, url }): Promise<Response> => {
-  const adminPassword = (cfEnv as any).ADMIN_PASSWORD;
+  const kv = (cfEnv as any).RATE_LIMIT_KV;
   const db = (cfEnv as any).DB;
 
-  if (!adminPassword || !isAuthed(request, adminPassword)) {
+  if (!(await isAuthed(request, kv))) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized." }), { status: 401 });
   }
 

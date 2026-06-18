@@ -70,7 +70,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <form
           id="contact-form"
           class="contact-form"
-          action="/api/contact"
+          action="/api/contact/send-otp"
           method="POST"
           novalidate
           aria-label="Contact form"
@@ -138,6 +138,42 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               Sending…
             </span>
           </button>
+        </form>
+
+        <!-- OTP verification step — hidden until an OTP has been sent -->
+        <form id="otp-form" class="contact-form" novalidate hidden aria-label="Verify your email">
+          <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary);">
+            We sent a 6-digit code to <strong id="otp-email-display"></strong>. Enter it below to send your message.
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="otp-code">Verification code</label>
+            <input
+              class="form-input"
+              type="text"
+              id="otp-code"
+              name="otp"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="one-time-code"
+              aria-describedby="otp-error"
+            />
+            <span class="form-error" id="otp-error" role="alert" aria-live="polite"></span>
+          </div>
+          <div style="display:flex; gap: var(--space-3); align-items:center;">
+            <button type="submit" class="btn btn-primary btn-submit" id="otp-submit-btn">
+              <span class="btn-text">Verify &amp; send</span>
+              <span class="btn-spinner" aria-hidden="true" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                Verifying…
+              </span>
+            </button>
+            <button type="button" id="otp-cancel-btn" class="btn" style="background:transparent; border:1px solid var(--color-border);">
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -232,10 +268,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 </style>
 
 <script>
-  // ── Web3Forms key (browser-side call — this is allowed on free plan) ──
-  const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
-
-  const form = document.getElementById("contact-form");
+  const form = document.getElementById("contact-form") as HTMLFormElement | null;
   const submitBtn = document.getElementById("submit-btn");
   const btnText = submitBtn?.querySelector(".btn-text");
   const btnSpinner = submitBtn?.querySelector(".btn-spinner");
@@ -243,7 +276,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   const errorEl = document.getElementById("form-error");
   const errorMsg = document.getElementById("form-error-message");
 
-  function setFieldError(fieldId, message) {
+  const otpForm = document.getElementById("otp-form") as HTMLFormElement | null;
+  const otpInput = document.getElementById("otp-code") as HTMLInputElement | null;
+  const otpError = document.getElementById("otp-error");
+  const otpEmailDisplay = document.getElementById("otp-email-display");
+  const otpSubmitBtn = document.getElementById("otp-submit-btn");
+  const otpBtnText = otpSubmitBtn?.querySelector(".btn-text");
+  const otpBtnSpinner = otpSubmitBtn?.querySelector(".btn-spinner");
+  const otpCancelBtn = document.getElementById("otp-cancel-btn");
+
+  let pendingRequestId: string | null = null;
+
+  function setFieldError(fieldId: string, message: string) {
     const input = document.getElementById(fieldId);
     const span = document.getElementById(`${fieldId}-error`);
     if (input) input.setAttribute("aria-invalid", message ? "true" : "false");
@@ -254,20 +298,44 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     ["name", "email", "message"].forEach((id) => setFieldError(id, ""));
   }
 
-  function setLoading(on) {
-    if (submitBtn) submitBtn.disabled = on;
-    if (btnText) btnText.hidden = on;
-    if (btnSpinner) btnSpinner.hidden = !on;
+  function setLoading(on: boolean) {
+    if (submitBtn) (submitBtn as HTMLButtonElement).disabled = on;
+    if (btnText) (btnText as HTMLElement).hidden = on;
+    if (btnSpinner) (btnSpinner as HTMLElement).hidden = !on;
   }
 
-  function validate(data) {
-    const errors = {};
+  function setOtpLoading(on: boolean) {
+    if (otpSubmitBtn) (otpSubmitBtn as HTMLButtonElement).disabled = on;
+    if (otpBtnText) (otpBtnText as HTMLElement).hidden = on;
+    if (otpBtnSpinner) (otpBtnSpinner as HTMLElement).hidden = !on;
+  }
+
+  function validate(data: { name: string; email: string; message: string }) {
+    const errors: Record<string, string> = {};
     if (data.name.trim().length < 2) errors.name = "Please enter your name (at least 2 characters).";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.email = "Please enter a valid email address.";
+    if (!/^[^\s@]+@gmail\.com$/i.test(data.email)) errors.email = "Only Gmail addresses are accepted (e.g. yourname@gmail.com).";
     if (data.message.trim().length < 10) errors.message = "Please enter a message (at least 10 characters).";
     return errors;
   }
 
+  function showOtpStep(email: string) {
+    if (form) form.hidden = true;
+    if (otpForm) {
+      otpForm.hidden = false;
+      if (otpEmailDisplay) otpEmailDisplay.textContent = email;
+      otpInput?.focus();
+    }
+  }
+
+  function backToFormStep() {
+    pendingRequestId = null;
+    if (otpForm) otpForm.hidden = true;
+    if (otpInput) otpInput.value = "";
+    if (otpError) otpError.textContent = "";
+    if (form) form.hidden = false;
+  }
+
+  // ── Step 1: submit name/email/message → request an OTP ──
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors();
@@ -290,33 +358,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     setLoading(true);
 
     try {
-      // Step 1: Save to D1 via Worker (server-side)
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/contact/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const body = await res.json().catch(() => ({}));
 
       if (res.ok && body.ok) {
-        // Step 2: Send email via Web3Forms from the browser (client-side — works on free plan)
-        fetch("https://api.web3forms.com/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            name: data.name,
-            email: data.email,
-            message: data.message,
-            subject: `[Portfolio Contact] Message from ${data.name}`,
-            from_name: data.name,
-            replyto: data.email,
-          }),
-        }).catch(() => {}); // fire and forget — don't block success
-
-        form.reset();
-        if (successEl) successEl.hidden = false;
+        pendingRequestId = body.requestId;
+        showOtpStep(data.email);
+      } else if (body.errors) {
+        Object.entries(body.errors).forEach(([field, msg]) => setFieldError(field, msg as string));
       } else {
         if (errorMsg) errorMsg.textContent = body.error ?? "Something went wrong. Please try again.";
         if (errorEl) errorEl.hidden = false;
@@ -328,4 +381,41 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       setLoading(false);
     }
   });
+
+  // ── Step 2: submit the OTP code → verify, save, and send the real email ──
+  otpForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (otpError) otpError.textContent = "";
+
+    const otp = otpInput?.value?.trim() ?? "";
+    if (!otp || !pendingRequestId) {
+      if (otpError) otpError.textContent = "Please enter the code from your email.";
+      return;
+    }
+
+    setOtpLoading(true);
+
+    try {
+      const res = await fetch("/api/contact/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: pendingRequestId, otp }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
+        backToFormStep();
+        form?.reset();
+        if (successEl) successEl.hidden = false;
+      } else {
+        if (otpError) otpError.textContent = body.error ?? "Incorrect code. Please try again.";
+      }
+    } catch {
+      if (otpError) otpError.textContent = "Could not reach the server. Please check your connection.";
+    } finally {
+      setOtpLoading(false);
+    }
+  });
+
+  otpCancelBtn?.addEventListener("click", backToFormStep);
 </script>
