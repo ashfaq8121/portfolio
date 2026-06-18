@@ -22,19 +22,71 @@ My personal portfolio website built with Astro and deployed on Cloudflare Worker
 
 ---
 
+## Public JSON API
+
+In addition to the website pages, the project exposes a small public, read-only JSON API —
+documented with an OpenAPI 3.x spec at [`openapi.yaml`](./openapi.yaml). Anyone (a person, a
+script, or another app) can call these without authentication.
+
+| Endpoint | Method | What it returns |
+|---|---|---|
+| `/api/posts` | GET | List of all published blog posts (slug, title, description, tags, etc.) |
+| `/api/posts/:slug` | GET | Full content of one blog post by slug, including the long-form body |
+| `/api/github` | GET | My live public GitHub repositories, fetched directly from the GitHub API |
+
+**Example:**
+```bash
+curl https://portfolio.ashfaq-portfolio.workers.dev/api/posts
+curl https://portfolio.ashfaq-portfolio.workers.dev/api/posts/nyc-taxi-dashboard-lessons
+curl https://portfolio.ashfaq-portfolio.workers.dev/api/github
+```
+
+### Status Codes
+
+| Code | Meaning |
+|---|---|
+| `200` | Success |
+| `400` | Bad request (e.g. missing required parameter) |
+| `404` | Resource not found (e.g. unknown blog post slug) |
+| `500` | Unexpected server error |
+| `503` | External service (GitHub) is slow or unavailable |
+
+All error responses share the same shape: `{ "ok": false, "error": "..." }`.
+
+### External Integration — GitHub
+
+`/api/github` calls the real GitHub REST API server-side to fetch my public repositories, using
+a `GITHUB_TOKEN` stored as a Cloudflare Workers secret (never in the repo or client code). The
+response is cached at the edge for 5 minutes via a `Cache-Control` header to reduce repeated
+calls to GitHub. If GitHub is slow, rate-limited, or down, the endpoint degrades gracefully —
+returning `503` with an empty repo list and a friendly error message instead of breaking the
+page. See [`DECISIONS.md`](./DECISIONS.md) for the full reasoning behind the caching and
+failure-handling approach.
+
+### Design & Architecture Docs
+
+- [`HLD.md`](./HLD.md) — high-level design: components, data flow, and sequence diagrams
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — code tour of how a request flows through each file
+- [`DECISIONS.md`](./DECISIONS.md) — the reasoning behind caching, failure handling, and other
+  technical choices made throughout the project
+
+---
+
 ## Tech Stack
 
 | Tool | What I used it for |
 |---|---|
-| Astro | Building all the pages and components |
+| Astro | Building all the pages, components, and JSON API routes |
 | TypeScript | Writing safe and clean code |
 | CSS | Styling and dark mode |
 | Cloudflare Workers | Hosting the site and running all API routes |
 | Cloudflare KV | Rate limiting the contact form (max 3 per IP per hour) |
 | Cloudflare D1 | Storing contact form submissions in a SQLite database |
 | Web3Forms | Sending contact form emails to my inbox |
+| GitHub REST API | Live public repository data, surfaced through `/api/github` |
+| OpenAPI 3.x | Documenting the public JSON API contract |
 | Vitest | Unit tests |
-| GitHub Actions | Automatic deployment on every push |
+| GitHub Actions | Automatic deployment on every push, gated by required PR review |
 
 ---
 
@@ -66,23 +118,31 @@ my-portfolio/
 │   │   ├── admin.astro         # Admin dashboard (password-protected, timestamps in IST)
 │   │   ├── 404.astro           # Not found page
 │   │   ├── rss.xml.ts          # RSS feed
-│   │   ├── api/ADMIN/
-|   |   |   |       |___ login.ts
-|   |   |   |        |___ logout.ts
-|   |   |   |        |___ submission.ts
-│   │   │   └── contact.ts      # Contact form handler (validation + KV rate limit + D1 save + email)
+│   │   ├── api/
+│   │   │   ├── contact.ts      # Contact form handler (validation + KV rate limit + D1 save + email)
+│   │   │   ├── github.ts       # GET /api/github — live GitHub repos, cached, with fallback on failure
+│   │   │   ├── posts.ts        # GET /api/posts — list of all blog posts
+│   │   │   ├── posts/
+│   │   │   │   └── [slug].ts   # GET /api/posts/:slug — single blog post by slug
+│   │   │   └── admin/
+│   │   │       ├── login.ts    # Admin login, sets HttpOnly session cookie
+│   │   │       ├── logout.ts   # Admin logout, clears session cookie
+│   │   │       └── submissions.ts # Fetch/delete contact submissions (admin only)
 │   │   └── blog/
 │   │       ├── index.astro     # Blog list page
 │   │       └── [slug].astro    # Individual blog post page
 │   └── styles/                 # Global CSS variables and reset
 ├── astro.config.mjs            # Astro configuration
-├── wrangler.toml               # Cloudflare Workers, KV, and D1 configuration
-├── package.json                # Dependencies and scripts
-├── tsconfig.json               # TypeScript configuration
-├── plan.md                     # Project plan and decisions
-├── design.md                   # Design notes
-├── decision.md                 # Architecture decision records
-└── testing.md                  # Testing notes
+├── wrangler.toml                # Cloudflare Workers, KV, and D1 configuration
+├── openapi.yaml                 # OpenAPI 3.x spec for the public JSON API
+├── HLD.md                       # High-level design + sequence diagrams (Extension 2)
+├── ARCHITECTURE.md              # Code tour of API request flows (Extension 2)
+├── DECISIONS.md                 # Architecture decision records, including caching & failure handling
+├── package.json                 # Dependencies and scripts
+├── tsconfig.json                # TypeScript configuration
+├── plan.md                      # Project plan and decisions
+├── design.md                    # Design notes
+└── testing.md                   # Testing notes
 ```
 
 ---
@@ -148,18 +208,27 @@ npm run dev
 
 Site runs at `http://localhost:4321`
 
-Note — the contact form (email sending and D1 saving) only works on the deployed Cloudflare site, not locally.
+Note — the contact form (email sending and D1 saving), the GitHub repos API, and admin login
+only work on the deployed Cloudflare site, since they depend on Wrangler secrets and bindings
+not available locally by default.
 
 ---
 
 ## Deployment
 
-Deployment is fully automatic via GitHub Actions.
+Deployment is fully automatic via GitHub Actions, gated by a required pull request review.
 
-Every push to `main` triggers the deploy workflow which:
-1. Installs dependencies
-2. Builds the site
-3. Deploys to Cloudflare Workers
+The required shipping workflow for any change:
+1. Create a dedicated feature branch and push it to GitHub
+2. Deploy/preview the branch to verify it works (manual `wrangler deploy` or branch CI — no approval needed for this step)
+3. Open a pull request from the branch into `main`
+4. Get the PR reviewed and approved
+5. Merge — landing on `main` is what triggers the production deploy, which:
+   - Installs dependencies
+   - Builds the site
+   - Deploys to Cloudflare Workers
+
+`main` is protected — it cannot be pushed to directly and cannot be merged without an approving review.
 
 **Before the first deploy**, apply the D1 migration manually:
 
@@ -167,7 +236,7 @@ Every push to `main` triggers the deploy workflow which:
 wrangler d1 migrations apply portfolio-db --remote
 ```
 
-Never run `wrangler deploy` manually after that — always push through GitHub.
+Never run `wrangler deploy` manually outside of testing a branch preview — production changes only happen through an approved pull request landing on `main`.
 
 ---
 
@@ -178,7 +247,7 @@ Never run `wrangler deploy` manually after that — always push through GitHub.
 | `npm run dev` | Start local dev server |
 | `npm run build` | Build site to /dist |
 | `npm run test` | Run unit tests |
-| `npm run deploy` | Build and deploy manually (first deploy only) |
+| `npm run deploy` | Build and deploy manually (branch testing / first deploy only) |
 
 ---
 
@@ -188,8 +257,9 @@ Never run `wrangler deploy` manually after that — always push through GitHub.
 |---|---|---|
 | `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Token for automatic deployment |
 | `ADMIN_PASSWORD` | Cloudflare Workers secret | Password for the `/admin` dashboard |
+| `GITHUB_TOKEN` | Cloudflare Workers secret | Read-only token used by `/api/github` to call the GitHub REST API |
 
-The Web3Forms access key is hardcoded (public key — safe to commit).
+The Web3Forms access key is hardcoded (public key — safe to commit). All other secrets are set via `wrangler secret put` and never appear in the repo or in client-side code.
 
 ---
 
