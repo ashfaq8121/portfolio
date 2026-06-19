@@ -3,8 +3,6 @@ import { env as cfEnv } from "cloudflare:workers";
 
 export const prerender = false;
 
-// Reads the admin_token cookie and checks it against a valid session
-// stored in KV — never compares against the real password anymore.
 async function isAuthed(request: Request, kv: any): Promise<boolean> {
   if (!kv) return false;
 
@@ -30,8 +28,18 @@ export const GET: APIRoute = async ({ request }): Promise<Response> => {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized." }), { status: 401 });
   }
 
+  // Convert UTC to IST (+5:30) in SQL query
   const { results } = await db.prepare(
-    `SELECT id, name, email, message, ip, submitted_at FROM contact_submissions WHERE is_deleted = 0 ORDER BY submitted_at DESC`
+    `SELECT 
+      id, 
+      name, 
+      email, 
+      message, 
+      ip, 
+      datetime(submitted_at, '+5 hours', '+30 minutes') as submitted_at 
+    FROM contact_submissions 
+    WHERE is_deleted = 0 
+    ORDER BY submitted_at DESC`
   ).all();
 
   return new Response(JSON.stringify({ ok: true, data: results }), {

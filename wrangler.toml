@@ -8,9 +8,11 @@ directory = "./dist"
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
 
+
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
 id = "75f6221e15ef407eb6460f2c9878b431"
+preview_id = "75f6221e15ef407eb6460f2c9878b431"
 
 [[d1_databases]]
 binding = "DB"
