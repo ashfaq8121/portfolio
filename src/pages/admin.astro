@@ -647,7 +647,7 @@ export const prerender = false;
     <button class="btn-login" onclick="login()">Sign in</button>
     <div class="error-msg" id="login-error">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Incorrect password. Please try again.
+      <span id="login-error-text">Incorrect password. Please try again.</span>
     </div>
   </div>
 </div>
@@ -723,19 +723,41 @@ export const prerender = false;
   async function login() {
     const password = document.getElementById('password').value;
     const errEl = document.getElementById('login-error');
+    const errText = document.getElementById('login-error-text');
     errEl.style.display = 'none';
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-      credentials: 'same-origin'
-    });
-    if (res.ok) showDashboard();
-    else errEl.style.display = 'flex';
+
+    let res, json;
+    try {
+      res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+        credentials: 'same-origin'
+      });
+      json = await res.json().catch(() => ({}));
+    } catch {
+      errText.textContent = 'Network error. Please try again.';
+      errEl.style.display = 'flex';
+      return;
+    }
+
+    if (res.ok) {
+      showDashboard();
+    } else {
+      // Show the server's actual message (wrong password vs. rate-limit lockout)
+      errText.textContent = json && json.error ? json.error : 'Incorrect password. Please try again.';
+      errEl.style.display = 'flex';
+    }
   }
 
   document.getElementById('password').addEventListener('keydown', e => {
     if (e.key === 'Enter') login();
+  });
+
+  // Pop the error away as soon as the person starts typing again —
+  // it should only reappear the next time they actually submit and fail.
+  document.getElementById('password').addEventListener('input', () => {
+    document.getElementById('login-error').style.display = 'none';
   });
 
   function showDashboard() {
