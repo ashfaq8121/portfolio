@@ -1,9 +1,13 @@
 import type { APIRoute } from "astro";
 import { env as cfEnv } from "cloudflare:workers";
+import { readVerifiedEmails } from "../../lib/otp";
 
 const WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c";
-const RATE_LIMIT = 3;
-const RATE_WINDOW_SECONDS = 3600; // 1 hour
+
+const IP_RATE_LIMIT = 5;
+const IP_RATE_WINDOW_SECONDS = 3600; // 1 hour, window starts at first message
+const EMAIL_RATE_LIMIT = 3;
+const EMAIL_RATE_WINDOW_SECONDS = 3600; // 1 hour, window starts at first message
 
 interface ContactResponse {
   ok: boolean;
@@ -68,7 +72,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   }
 
   name = stripHtml(name);
-  email = stripHtml(email);
+  email = stripHtml(email).toLowerCase();
   message = stripHtml(message);
 
   const errors: Record<string, string> = {};
@@ -106,58 +110,92 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     return json({ ok: false, errors }, 422);
   }
 
+  // ── Must have completed OTP verification for this email, on this browser ──
+  const secret = (cfEnv as any).OTP_SIGNING_SECRET;
+  if (!secret) {
+    console.error("contact.ts missing OTP_SIGNING_SECRET.");
+    return json({ ok: false, error: "Server not configured." }, 500);
+  }
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  const verifiedEmails = await readVerifiedEmails(cookieHeader, secret);
+  if (!verifiedEmails.includes(email)) {
+    return json(
+      { ok: false, error: "Please verify your email with the code sent to it before sending a message." },
+      403
+    );
+  }
+
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
   const kv = (cfEnv as any).RATE_LIMIT_KV;
   const db = (cfEnv as any).DB;
 
-  // ── Fixed-window rate limit ──────────────────────────────────────────────
-  if (kv) {
+  // ── Two independent fixed-window limits: per IP and per email ───────────
+  // Both windows start counting from the FIRST message, not the latest.
+  // We peek both before writing either, so a block on one doesn't burn
+  // a "slot" on the other for a message that never actually sends.
+  const now = Math.floor(Date.now() / 1000);
+
+  async function peek(key: string): Promise<RateLimitData | null> {
+    if (!kv) return null;
     try {
-      const key = `ratelimit:${ip}`;
-      const now = Math.floor(Date.now() / 1000);
-
-      const stored = (await kv.get(key, { type: "json" })) as RateLimitData | null;
-
-      if (!stored || now >= stored.expiresAt) {
-        // No key or window expired — fresh start at count 1
-        const freshData: RateLimitData = {
-          count: 1,
-          expiresAt: now + RATE_WINDOW_SECONDS,
-        };
-        await kv.put(key, JSON.stringify(freshData), {
-          expiration: freshData.expiresAt,
-        });
-      } else {
-        // Window still active — block if already at limit
-        if (stored.count >= RATE_LIMIT) {
-          return json(
-            { ok: false, error: "Too many messages. Please try again in an hour." },
-            429
-          );
-        }
-
-        // Under the limit — increment and save before proceeding
-        const updatedData: RateLimitData = {
-          count: stored.count + 1,
-          expiresAt: stored.expiresAt,
-        };
-        await kv.put(key, JSON.stringify(updatedData), {
-          expiration: updatedData.expiresAt,
-        });
-      }
+      return (await kv.get(key, { type: "json" })) as RateLimitData | null;
     } catch (err) {
-      console.error("KV rate-limit error:", err);
+      console.error("Rate-limit read error:", err);
+      return null;
     }
   }
-  // ────────────────────────────────────────────────────────────────────────
+
+  function secondsUntilUnblocked(stored: RateLimitData | null, limit: number): number | null {
+    if (!stored || now >= stored.expiresAt) return null;
+    if (stored.count >= limit) return stored.expiresAt - now;
+    return null;
+  }
+
+  async function bump(key: string, stored: RateLimitData | null, windowSeconds: number): Promise<void> {
+    if (!kv) return;
+    const next: RateLimitData =
+      !stored || now >= stored.expiresAt
+        ? { count: 1, expiresAt: now + windowSeconds }
+        : { count: stored.count + 1, expiresAt: stored.expiresAt };
+    try {
+      await kv.put(key, JSON.stringify(next), { expiration: next.expiresAt });
+    } catch (err) {
+      console.error("Rate-limit write error:", err);
+    }
+  }
+
+  const ipKey = `msg-ip:${ip}`;
+  const emailKey = `msg-email:${email}`;
+
+  const ipStored = await peek(ipKey);
+  const ipBlockedIn = secondsUntilUnblocked(ipStored, IP_RATE_LIMIT);
+  if (ipBlockedIn !== null) {
+    const mins = Math.ceil(ipBlockedIn / 60);
+    return json(
+      { ok: false, error: `Too many messages from this network. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.` },
+      429
+    );
+  }
+
+  const emailStored = await peek(emailKey);
+  const emailBlockedIn = secondsUntilUnblocked(emailStored, EMAIL_RATE_LIMIT);
+  if (emailBlockedIn !== null) {
+    const mins = Math.ceil(emailBlockedIn / 60);
+    return json(
+      { ok: false, error: `Too many messages from this email. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.` },
+      429
+    );
+  }
+
+  await bump(ipKey, ipStored, IP_RATE_WINDOW_SECONDS);
+  await bump(emailKey, emailStored, EMAIL_RATE_WINDOW_SECONDS);
+  // ──────────────────────────────────────────────────────────────────────────
 
   // Save allowed submission to D1
   if (db) {
     try {
       await db
-        .prepare(
-          `INSERT INTO contact_submissions (name, email, message, ip) VALUES (?, ?, ?, ?)`
-        )
+        .prepare(`INSERT INTO contact_submissions (name, email, message, ip) VALUES (?, ?, ?, ?)`)
         .bind(name, email, message, ip)
         .run();
     } catch (err) {
@@ -165,7 +203,9 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     }
   }
 
-  // Send email via Web3Forms
+  // Send email via Web3Forms — done once, server-side only.
+  // (Previously this was ALSO fired client-side in contact.astro, causing
+  // duplicate emails. The client-side call has been removed.)
   try {
     const res = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
@@ -183,14 +223,12 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
 
     const data = (await res.json()) as any;
 
-    if (data.success) {
-      return json({ ok: true, message: "Message sent! I will get back to you soon." });
+    if (!data.success) {
+      console.error("Web3Forms error:", data);
     }
-
-    console.error("Web3Forms error:", data);
-    return json({ ok: true, message: "Message sent! I will get back to you soon." });
   } catch (err) {
     console.error("Web3Forms fetch error:", err);
-    return json({ ok: true, message: "Message sent! I will get back to you soon." });
   }
+
+  return json({ ok: true, message: "Message sent! I will get back to you soon." });
 };
