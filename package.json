@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "evals": "tsx evals/run-evals.ts"
+
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.1",
