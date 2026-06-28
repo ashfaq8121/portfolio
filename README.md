@@ -16,6 +16,7 @@ My personal portfolio website built with Astro and deployed on Cloudflare Worker
 | About | My background, skills, what I am working on |
 | Projects | 3 real projects I built with details |
 | Blog | 3 articles based on my real projects |
+| Ask About Me | AI chatbot that answers questions about me, grounded in my real résumé |
 | Contact | Form that sends email directly to my inbox and saves to database |
 | Admin | Password-protected dashboard to view and manage contact submissions |
 | 404 | Friendly not found page |
@@ -69,6 +70,7 @@ failure-handling approach.
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — code tour of how a request flows through each file
 - [`DECISIONS.md`](./DECISIONS.md) — the reasoning behind caching, failure handling, and other
   technical choices made throughout the project
+- [`EVALS.md`](./EVALS.md) — how the "Ask About Me" chatbot is tested for accuracy and safety
 
 ---
 
@@ -80,6 +82,7 @@ failure-handling approach.
 | TypeScript | Writing safe and clean code |
 | CSS | Styling and dark mode |
 | Cloudflare Workers | Hosting the site and running all API routes |
+| Cloudflare Workers AI | Powering the "Ask About Me" chatbot (GLM-4.7-flash model) |
 | Cloudflare KV | Rate limiting the contact form (max 3 per IP per hour) |
 | Cloudflare D1 | Storing contact form submissions in a SQLite database |
 | Web3Forms | Sending contact form emails to my inbox |
@@ -96,30 +99,40 @@ failure-handling approach.
 my-portfolio/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml              # Runs tests on every pull request
-│       └── deploy.yml          # Deploys to Cloudflare on every push to main
+│       ├── ci.yml              # Runs tests + build on every pull request
+│       ├── deploy.yml          # Deploys to Cloudflare on every push to main
+│       └── evals.yml           # Runs the chatbot eval suite on every PR (informational)
 ├── migrations/
 │   └── 0001_init.sql           # D1 database schema (contact_submissions table)
+├── evals/
+│   ├── cases.ts                 # 20 test questions + expected-answer rules for the chatbot
+│   ├── run-evals.ts             # Runs all cases against the live chatbot, writes report.md
+│   └── run-evals.test.ts        # Fast check that the test cases themselves are well-formed
 ├── public/
 │   ├── favicon.png
 │   ├── og-default.png
+│   ├── ashfaq-ur-rahman-resume.pdf   # Downloadable résumé (linked from /ask)
 │   └── robots.txt
 ├── src/
 │   ├── components/             # Reusable components (Nav, Footer, BlogCard, etc.)
 │   ├── layouts/                # BaseLayout and BlogLayout
 │   ├── lib/
 │   │   ├── validate.ts         # Shared validation logic (name, Gmail-only email, message)
-│   │   └── validate.test.ts    # Unit tests for validation logic
+│   │   ├── validate.test.ts    # Unit tests for validation logic
+│   │   ├── resume-context.ts   # Chatbot's grounding data — my real résumé facts
+│   │   └── chat-system-prompt.ts # Chatbot's behavior rules (guardrails, tone, fallback message)
 │   ├── pages/                  # All pages and routes
 │   │   ├── index.astro         # Home page
 │   │   ├── about.astro         # About page
 │   │   ├── projects.astro      # Projects page
+│   │   ├── ask.astro           # "Ask About Me" chatbot page (category menu + free-text chat)
 │   │   ├── contact.astro       # Contact page
 │   │   ├── admin.astro         # Admin dashboard (password-protected, timestamps in IST)
 │   │   ├── 404.astro           # Not found page
 │   │   ├── rss.xml.ts          # RSS feed
 │   │   ├── api/
 │   │   │   ├── contact.ts      # Contact form handler (validation + KV rate limit + D1 save + email)
+│   │   │   ├── chat.ts         # POST /api/chat — chatbot endpoint, streams answers from Workers AI
 │   │   │   ├── github.ts       # GET /api/github — live GitHub repos, cached, with fallback on failure
 │   │   │   ├── posts.ts        # GET /api/posts — list of all blog posts
 │   │   │   ├── posts/
@@ -133,11 +146,13 @@ my-portfolio/
 │   │       └── [slug].astro    # Individual blog post page
 │   └── styles/                 # Global CSS variables and reset
 ├── astro.config.mjs            # Astro configuration
-├── wrangler.toml                # Cloudflare Workers, KV, and D1 configuration
+├── wrangler.toml                # Cloudflare Workers, KV, D1, and AI binding configuration
 ├── openapi.yaml                 # OpenAPI 3.x spec for the public JSON API
-├── HLD.md                       # High-level design + sequence diagrams (Extension 2)
-├── ARCHITECTURE.md              # Code tour of API request flows (Extension 2)
-├── DECISIONS.md                 # Architecture decision records, including caching & failure handling
+├── HLD.md                       # High-level design + sequence diagrams (Extensions 2 & 3)
+├── ARCHITECTURE.md              # Code tour of API request flows (Extensions 2 & 3)
+├── DECISIONS.md                 # Architecture decision records, including the chatbot's model
+│                                  and eval-gating choices (Extension 3)
+├── EVALS.md                      # Chatbot eval suite — test cases, sample report, blind spots
 ├── package.json                 # Dependencies and scripts
 ├── tsconfig.json                # TypeScript configuration
 ├── plan.md                      # Project plan and decisions
@@ -182,6 +197,42 @@ Soft-delete is used — records are marked `is_deleted = 1` rather than removed,
 
 ---
 
+## Ask About Me — AI Chatbot + Evals
+
+The `/ask` page is a small chatbot that answers visitor questions about me, grounded entirely in
+my real résumé — it doesn't invent facts, jobs, or skills I don't actually have.
+
+### How it works
+
+1. A visitor clicks a ready-made question (organized by category: Education, Skills, Projects,
+   Certifications, Other) or types their own.
+2. The question is sent to `/api/chat`, which combines my real résumé facts
+   (`resume-context.ts`) with a set of behavior rules (`chat-system-prompt.ts`) and the visitor's
+   question, then sends all of it to **Cloudflare Workers AI** (model: `@cf/zai-org/glm-4.7-flash`).
+3. The answer streams back token by token, so it appears to "type itself out" rather than
+   showing up all at once after a long pause.
+4. If a question has nothing to do with me, or asks for something my résumé doesn't cover, the
+   bot always replies with one exact sentence — *"Information not found. Try one of the
+   suggested questions above, or ask something else about Ashfaq."* — rather than a different
+   made-up excuse every time.
+
+### How it's tested
+
+A 20-question eval suite (`evals/cases.ts`) checks the bot's answers for factual accuracy (e.g.
+correct CGPA, correct project numbers) and safety guardrails (no invented jobs, no salary
+numbers, no fabricated personal details). Run it yourself:
+
+```bash
+npm run evals
+```
+
+This calls the live chatbot for every test case and writes a pass/fail report to
+`evals/report.md`. It also runs automatically (and non-blocking) on every pull request via
+`.github/workflows/evals.yml`. Full details, including a demonstration that the suite catches a
+deliberately introduced regression, are in [`EVALS.md`](./EVALS.md).
+
+---
+
 ## Admin Dashboard
 
 The `/admin` page is a password-protected dashboard that shows all contact form submissions stored in D1.
@@ -208,9 +259,10 @@ npm run dev
 
 Site runs at `http://localhost:4321`
 
-Note — the contact form (email sending and D1 saving), the GitHub repos API, and admin login
-only work on the deployed Cloudflare site, since they depend on Wrangler secrets and bindings
-not available locally by default.
+Note — the contact form (email sending and D1 saving), the GitHub repos API, admin login, and
+the Ask About Me chatbot only work with a live Cloudflare connection, since they depend on
+Wrangler secrets and bindings (including the AI binding) that need a remote connection even in
+local dev.
 
 ---
 
@@ -247,6 +299,7 @@ Never run `wrangler deploy` manually outside of testing a branch preview — pro
 | `npm run dev` | Start local dev server |
 | `npm run build` | Build site to /dist |
 | `npm run test` | Run unit tests |
+| `npm run evals` | Run the 20-question chatbot eval suite against a live instance |
 | `npm run deploy` | Build and deploy manually (branch testing / first deploy only) |
 
 ---
@@ -255,11 +308,15 @@ Never run `wrangler deploy` manually outside of testing a branch preview — pro
 
 | Secret | Where to set | What it is |
 |---|---|---|
-| `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Token for automatic deployment |
+| `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Token for automatic deployment and CI build/eval steps |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions secret | Account ID needed alongside the API token for CI steps that touch Cloudflare |
 | `ADMIN_PASSWORD` | Cloudflare Workers secret | Password for the `/admin` dashboard |
 | `GITHUB_TOKEN` | Cloudflare Workers secret | Read-only token used by `/api/github` to call the GitHub REST API |
 
-The Web3Forms access key is hardcoded (public key — safe to commit). All other secrets are set via `wrangler secret put` and never appear in the repo or in client-side code.
+The Web3Forms access key is hardcoded (public key — safe to commit). The Ask About Me chatbot
+uses Cloudflare Workers AI via a native binding (`[ai] binding = "AI"` in `wrangler.toml`) — no
+separate API key needed. All other secrets are set via `wrangler secret put` and never appear in
+the repo or in client-side code.
 
 ---
 

@@ -12,7 +12,6 @@
     "test:watch": "vitest",
     "deploy": "npm run build && wrangler deploy",
     "evals": "tsx evals/run-evals.ts"
-
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.1",
@@ -24,6 +23,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.0.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.0.0",
     "vitest": "^1.0.0",
     "wrangler": "^4.100.0"

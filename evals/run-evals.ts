@@ -5,7 +5,7 @@
  * Vitest suite that gates PRs (see DECISIONS.md for why). Run with:
  *   npm run evals
  *
- * Env vars:
+ * Env vars (auto-loaded from .dev.vars if present — see below):
  *   CHAT_ENDPOINT          base URL of the site to test, e.g.
  *                          http://localhost:4321 (wrangler dev) or your
  *                          deployed branch preview URL. Defaults to localhost.
@@ -16,14 +16,41 @@
  * If the Cloudflare grading vars aren't set, model-graded cases are
  * reported as SKIPPED rather than failed, so the rest of the suite still
  * runs and a missing secret doesn't look like a regression.
+ *
+ * These two values are loaded automatically from .dev.vars (the same
+ * gitignored local-secrets file Wrangler already uses), so you don't have
+ * to set them with $env: in every fresh terminal — just add these two
+ * lines to .dev.vars once:
+ *   CLOUDFLARE_API_TOKEN=your-token-here
+ *   CLOUDFLARE_ACCOUNT_ID=your-account-id-here
+ * A real $env: value, if already set, always takes priority over .dev.vars.
  */
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync, readFileSync } from "fs";
 import { EVAL_CASES, type EvalCase } from "./cases";
+
+// ── Load CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID from .dev.vars ────────
+// (only fills in values that aren't already set in the real environment)
+function loadDevVars(): void {
+  if (!existsSync(".dev.vars")) return;
+  const lines = readFileSync(".dev.vars", "utf-8").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
+loadDevVars();
+// ─────────────────────────────────────────────────────────────────────────
 
 const CHAT_ENDPOINT = process.env.CHAT_ENDPOINT ?? "http://localhost:4321";
 const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const CF_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
-const GRADING_MODEL = "@cf/meta/llama-3.1-8b-instruct";
+// Must match MODEL in src/pages/api/chat.ts — keep these two in sync.
+const GRADING_MODEL = "@cf/zai-org/glm-4.7-flash";
 
 interface CaseResult {
   id: string;
@@ -34,7 +61,16 @@ interface CaseResult {
 }
 
 function countSentences(text: string): number {
-  return text.split(/[.!?]+/).map((s) => s.trim()).filter(Boolean).length;
+  // A naive split on every ".", "!", "?" badly overcounts résumé-style text:
+  // "CGPA of 7.97." and "B.Tech" each contain a period that ISN'T a real
+  // sentence boundary. Real sentence-ending punctuation is always followed
+  // by whitespace (or end of string) — "7.97" and "B.Tech" have no space
+  // right after their internal period, so requiring that distinguishes them.
+  // Decimal numbers get an extra pass: strip the internal "."  (7.97 -> 797)
+  // before counting, since digit.digit periods are never sentence boundaries.
+  const withoutDecimals = text.replace(/(\d)\.(\d)/g, "$1$2");
+  const enders = withoutDecimals.match(/[.!?]+(?=\s|$)/g) ?? [];
+  return Math.max(enders.length, 1);
 }
 
 function toList(expected: string | string[] | undefined): string[] {
@@ -62,9 +98,12 @@ ANSWER TO GRADE: """${answer}"""`;
     }
   );
   const data = (await res.json()) as any;
-  const text: string = data?.result?.response ?? "";
+  // Same two possible shapes as chat.ts: Llama-family models reply with a
+  // flat .response field; GLM-4.7-flash (OpenAI-compatible) nests it at
+  // result.choices[0].message.content. Check both.
+  const text: string = data?.result?.choices?.[0]?.message?.content ?? data?.result?.response ?? "";
   const pass = /^\s*pass/i.test(text);
-  return { pass, reason: text.trim().slice(0, 220) || "(empty grading response)" };
+  return { pass, reason: text.trim().slice(0, 220) || `(empty grading response — raw: ${JSON.stringify(data).slice(0, 200)})` };
 }
 
 /** Runs the single check defined on a case against the answer it got back. */
