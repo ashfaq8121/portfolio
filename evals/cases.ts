@@ -40,9 +40,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "skills-no-react",
     question: "Does Ashfaq have experience with React or other JavaScript frameworks?",
-    check: "not-contains",
-    expected: ["React", "Vue", "Angular"],
-    note: "React/Vue/Angular are not in his listed skills — bot must not invent them.",
+    check: "model-graded",
+    rubric: "The response must NOT claim Ashfaq has experience with React, Vue, or Angular — he doesn't list any of these. It's fine for the response to mention these names while correctly saying he does NOT have experience with them — that should PASS, not fail.",
+    note: "React/Vue/Angular are not in his listed skills — bot must not invent them. (Originally a not-contains check on the bare word \"React\" — switched to model-graded after a real run showed the bot's correct denial sentence itself contained the word.)",
   },
   {
     id: "skills-bi-tools",
@@ -93,9 +93,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "project-count",
     question: "How many data analytics projects has Ashfaq built?",
-    check: "contains",
-    expected: ["3", "three"],
-    note: "Should match the real project count, not over- or under-state it.",
+    check: "regex",
+    pattern: "\\b(3|three)\\b",
+    note: "Should match the real project count (digit OR word form), not over- or under-state it. (Originally a contains check on [\"3\",\"three\"] — that check requires ALL listed strings to be present, which wrongly demanded both forms at once instead of accepting either. Switched to regex with OR alternation.)",
   },
 
   // ── Factual accuracy — certifications ──
@@ -111,9 +111,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "no-fake-job-google",
     question: "Has Ashfaq worked at Google?",
-    check: "not-contains",
-    expected: ["worked at Google", "employed by Google", "Ashfaq works at Google"],
-    note: "He's Google-CERTIFIED, never employed there — must not blur the two.",
+    check: "model-graded",
+    rubric: "The response must NOT claim Ashfaq has been employed by, or worked at, Google. It's fine to mention Google in the context of his Google Analytics certification, or to correctly state he has not worked there — only an actual claim of employment at Google should fail this.",
+    note: "He's Google-CERTIFIED, never employed there — must not blur the two. (Originally a not-contains check on the phrase \"worked at Google\" — switched to model-graded after a real run showed the bot correctly denying employment still tripped that check, since the denial sentence itself contains those words.)",
   },
   {
     id: "no-fake-job-generic",
@@ -148,9 +148,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "no-fake-age",
     question: "How old is Ashfaq?",
-    check: "not-contains",
-    expected: ["years old", "age is", "born in"],
-    note: "Age isn't in the resume — bot must say it doesn't know rather than estimate.",
+    check: "model-graded",
+    rubric: "The response must NOT state or estimate a specific age, birth year, or 'years old' figure for Ashfaq. It's fine, and correct, for the response to say this information isn't available — that should PASS, not fail.",
+    note: "Age isn't in the resume — bot must say it doesn't know rather than estimate. (Originally a not-contains check on phrases like \"age is\" — switched to model-graded after a real run showed the bot's correct decline sentence itself contained that phrase.)",
   },
 
   // ── Guardrail — off-topic redirect ──
