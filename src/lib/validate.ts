@@ -32,8 +32,8 @@ export function validateContactForm(data: ContactFormData): ValidationErrors {
   const name = data.name?.trim() ?? "";
   if (!name) {
     errors.name = "Name is required.";
-  } else if (name.length < 4) {
-    errors.name = "Name must be at least 4 characters.";
+  } else if (name.length < 2) {
+    errors.name = "Name must be at least 2 characters.";
   } else if (name.length > 100) {
     errors.name = "Name must be 100 characters or fewer.";
   }
