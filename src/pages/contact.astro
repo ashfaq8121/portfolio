@@ -1,5 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+// Public (non-secret) site key, resolved at build time. Not a secret —
+// it's meant to be visible in the page HTML. Value differs by
+// environment via PUBLIC_TURNSTILE_SITE_KEY:
+//   local (.env)              -> Cloudflare's always-pass test key
+//   production (Pages build)  -> real sitekey, domain-matched
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 
 <BaseLayout
@@ -84,6 +91,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               id="name"
               name="name"
               autocomplete="name"
+              placeholder="Your full name"
               required
               aria-required="true"
               aria-describedby="name-error"
@@ -91,71 +99,27 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <span class="form-error" id="name-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <!-- Email — step 1: enter + request a code -->
-          <div class="form-group" id="email-step">
+          <!-- Email -->
+          <div class="form-group">
             <label class="form-label" for="email">
               Email (Gmail only) <span class="required" aria-hidden="true">*</span>
             </label>
-            <div class="inline-field">
-              <input
-                class="form-input"
-                type="email"
-                id="email"
-                name="email"
-                autocomplete="email"
-                placeholder="yourname@gmail.com"
-                required
-                aria-required="true"
-                aria-describedby="email-error"
-              />
-              <button type="button" class="btn btn-secondary btn-inline" id="send-otp-btn">
-                Send code
-              </button>
-            </div>
+            <input
+              class="form-input"
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              placeholder="yourname@gmail.com"
+              required
+              aria-required="true"
+              aria-describedby="email-error"
+            />
             <span class="form-error" id="email-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <!-- OTP — step 2: enter the code that was emailed -->
-          <div class="form-group" id="otp-step" hidden>
-            <label class="form-label" for="otp">Verification code</label>
-            <div class="inline-field">
-              <input
-                class="form-input"
-                type="text"
-                id="otp"
-                name="otp"
-                inputmode="numeric"
-                autocomplete="one-time-code"
-                maxlength="6"
-                placeholder="6-digit code"
-                aria-describedby="otp-error"
-              />
-              <button type="button" class="btn btn-secondary btn-inline" id="verify-otp-btn">
-                Verify
-              </button>
-            </div>
-            <div class="otp-meta">
-              <span id="otp-timer" class="otp-timer"></span>
-              <span class="otp-meta-actions">
-                <button type="button" class="link-btn" id="resend-otp-btn">Resend code</button>
-                <span aria-hidden="true">·</span>
-                <button type="button" class="link-btn" id="change-email-btn">Change email</button>
-              </span>
-            </div>
-            <span class="form-error" id="otp-error" role="alert" aria-live="polite"></span>
-          </div>
-
-          <!-- Verified badge — shown once OTP succeeds -->
-          <div class="verified-badge" id="verified-badge" hidden>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
-            </svg>
-            <span><span id="verified-email-text"></span> verified</span>
-            <button type="button" class="link-btn" id="use-different-email-btn">Use a different email</button>
-          </div>
-
-          <!-- Message — unlocked only after email is verified -->
-          <div class="form-group" id="message-step" hidden>
+          <!-- Message -->
+          <div class="form-group">
             <label class="form-label" for="message">
               Message <span class="required" aria-hidden="true">*</span>
             </label>
@@ -164,6 +128,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               id="message"
               name="message"
               rows="6"
+              placeholder="Tell me about your project or opportunity..."
               required
               aria-required="true"
               aria-describedby="message-error"
@@ -171,7 +136,19 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <span class="form-error" id="message-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn" hidden>
+          <!-- Cloudflare Turnstile Widget -->
+          <div class="form-group">
+       <div
+            class="cf-turnstile"
+            data-sitekey={TURNSTILE_SITE_KEY}
+            data-theme="dark"
+            data-callback="turnstileCallback"
+         ></div>
+            <input type="hidden" name="cf-turnstile-response" id="cf-turnstile-response" />
+            <span class="form-error" id="turnstile-error" role="alert" aria-live="polite"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
             <span class="btn-text">Send message</span>
             <span class="btn-spinner" aria-hidden="true" hidden>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -273,98 +250,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .inline-field {
-    display: flex;
-    gap: var(--space-2);
+  .cf-turnstile {
+    min-height: 65px;
   }
 
-  .inline-field .form-input { flex: 1; }
-
-  .btn-inline {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .btn-secondary {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    border-radius: var(--radius-lg);
-    padding: 0 var(--space-4);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-
-  .btn-secondary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .otp-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    margin-top: var(--space-2);
-  }
-
-  .otp-timer {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-  }
-
-  .otp-meta-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-  }
-
-  .link-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    color: var(--color-accent);
-    cursor: pointer;
-    text-decoration: underline;
-  }
-
-  .link-btn:hover { opacity: 0.8; }
-  .link-btn:disabled { opacity: 0.5; cursor: not-allowed; text-decoration: none; }
-
-  .verified-badge {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--text-sm);
-    color: var(--color-text);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-4);
-  }
-
-  .verified-badge svg { color: #16a34a; flex-shrink: 0; }
-  .verified-badge .link-btn { margin-left: auto; }
-
-  /* The hidden attribute must always win over our own display rules above —
-     otherwise elements like .verified-badge stay visible even when hidden
-     is set by JS, since author CSS overrides the browser's default. */
   [hidden] { display: none !important; }
 </style>
 
+<!-- Cloudflare Turnstile Script -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
 <script>
+  // Global callback for Turnstile
+  window.turnstileCallback = function(token) {
+    document.getElementById('cf-turnstile-response').value = token;
+  };
+
   const form = document.getElementById("contact-form");
   const submitBtn = document.getElementById("submit-btn");
   const btnText = submitBtn?.querySelector(".btn-text");
@@ -373,29 +274,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   const errorEl = document.getElementById("form-error");
   const errorMsg = document.getElementById("form-error-message");
 
-  const emailStep = document.getElementById("email-step");
-  const emailInput = document.getElementById("email");
-  const sendOtpBtn = document.getElementById("send-otp-btn");
-
-  const otpStep = document.getElementById("otp-step");
-  const otpInput = document.getElementById("otp");
-  const verifyOtpBtn = document.getElementById("verify-otp-btn");
-  const resendOtpBtn = document.getElementById("resend-otp-btn");
-  const changeEmailBtn = document.getElementById("change-email-btn");
-  const otpTimerEl = document.getElementById("otp-timer");
-  const otpErrorEl = document.getElementById("otp-error");
-
-  const verifiedBadge = document.getElementById("verified-badge");
-  const verifiedEmailText = document.getElementById("verified-email-text");
-  const useDifferentEmailBtn = document.getElementById("use-different-email-btn");
-
-  const messageStep = document.getElementById("message-step");
-
-  let otpTimerInterval: ReturnType<typeof setInterval> | null = null;
-  let otpExpiresAt = 0;
-  let verifiedEmail: string | null = null;
-
-  function setFieldError(fieldId: string, message: string) {
+  function setFieldError(fieldId, message) {
     const input = document.getElementById(fieldId);
     const span = document.getElementById(`${fieldId}-error`);
     if (input) input.setAttribute("aria-invalid", message ? "true" : "false");
@@ -403,198 +282,71 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   function clearErrors() {
-    ["name", "email", "message"].forEach((id) => setFieldError(id, ""));
+    ["name", "email", "message", "turnstile"].forEach((id) => setFieldError(id, ""));
   }
 
-  function setLoading(on: boolean) {
-    if (submitBtn) (submitBtn as HTMLButtonElement).disabled = on;
-    if (btnText) (btnText as HTMLElement).hidden = on;
-    if (btnSpinner) (btnSpinner as HTMLElement).hidden = !on;
+  function setLoading(on) {
+    if (submitBtn) submitBtn.disabled = on;
+    if (btnText) btnText.hidden = on;
+    if (btnSpinner) btnSpinner.hidden = !on;
   }
 
-  // ── OTP countdown ──────────────────────────────────────────────────────
-  function startOtpTimer(seconds: number) {
-    if (otpTimerInterval) clearInterval(otpTimerInterval);
-    otpExpiresAt = Date.now() + seconds * 1000;
-    (otpInput as HTMLInputElement).disabled = false;
-    (verifyOtpBtn as HTMLButtonElement).disabled = false;
-    updateOtpTimerDisplay();
-    otpTimerInterval = setInterval(updateOtpTimerDisplay, 1000);
-  }
+  // ── Client-side validation ───────────────────────────────────────────
+  function validateClientSide(data) {
+    const errors = {};
 
-  function updateOtpTimerDisplay() {
-    const remaining = Math.max(0, Math.round((otpExpiresAt - Date.now()) / 1000));
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    if (otpTimerEl) otpTimerEl.textContent = `Code expires in ${m}:${s.toString().padStart(2, "0")}`;
-    if (remaining <= 0) {
-      if (otpTimerInterval) clearInterval(otpTimerInterval);
-      if (otpTimerEl) otpTimerEl.textContent = "Code expired — request a new one.";
-      (otpInput as HTMLInputElement).disabled = true;
-      (verifyOtpBtn as HTMLButtonElement).disabled = true;
-    }
-  }
-
-  // ── Step transitions ───────────────────────────────────────────────────
-  function showOtpStep() {
-    (emailInput as HTMLInputElement).disabled = true;
-    (sendOtpBtn as HTMLButtonElement).disabled = true;
-    if (otpStep) (otpStep as HTMLElement).hidden = false;
-    if (otpInput) (otpInput as HTMLInputElement).value = "";
-    if (otpErrorEl) otpErrorEl.textContent = "";
-    otpInput?.focus();
-  }
-
-  function showVerified(email: string) {
-    verifiedEmail = email;
-    if (otpTimerInterval) clearInterval(otpTimerInterval);
-    if (emailStep) (emailStep as HTMLElement).hidden = true;
-    if (otpStep) (otpStep as HTMLElement).hidden = true;
-    if (verifiedBadge) (verifiedBadge as HTMLElement).hidden = false;
-    if (verifiedEmailText) verifiedEmailText.textContent = email;
-    if (messageStep) (messageStep as HTMLElement).hidden = false;
-    if (submitBtn) (submitBtn as HTMLElement).hidden = false;
-  }
-
-  function resetToEmailStep() {
-    verifiedEmail = null;
-    if (otpTimerInterval) clearInterval(otpTimerInterval);
-    if (emailStep) (emailStep as HTMLElement).hidden = false;
-    (emailInput as HTMLInputElement).disabled = false;
-    (sendOtpBtn as HTMLButtonElement).disabled = false;
-    if (otpStep) (otpStep as HTMLElement).hidden = true;
-    if (verifiedBadge) (verifiedBadge as HTMLElement).hidden = true;
-    if (messageStep) (messageStep as HTMLElement).hidden = true;
-    if (submitBtn) (submitBtn as HTMLElement).hidden = true;
-    setFieldError("otp", "");
-    otpInput?.focus();
-  }
-
-  // ── Request a code (also used for "Resend") ───────────────────────────
-  async function requestOtp() {
-    const email = (emailInput as HTMLInputElement).value.trim();
-    setFieldError("email", "");
-
-    if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
-      setFieldError("email", "Please enter a valid Gmail address.");
-      return;
+    const name = data.name?.trim() ?? "";
+    if (!name) {
+      errors.name = "Name is required.";
+    } else if (name.length < 4) {
+      errors.name = "Name must be at least 4 characters.";
+    } else if (name.length > 100) {
+      errors.name = "Name must be 100 characters or fewer.";
     }
 
-    (sendOtpBtn as HTMLButtonElement).disabled = true;
-    if (resendOtpBtn) (resendOtpBtn as HTMLButtonElement).disabled = true;
-
-    try {
-      const res = await fetch("/api/contact/request-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-        credentials: "same-origin",
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (res.ok && body.ok && body.alreadyVerified) {
-        showVerified(email);
-        return;
-      }
-      if (res.ok && body.ok) {
-        showOtpStep();
-        startOtpTimer(body.expiresInSeconds ?? 120);
-        return;
-      }
-      setFieldError("email", body.error ?? "Could not send the code. Please try again.");
-    } catch {
-      setFieldError("email", "Could not reach the server. Please check your connection.");
-    } finally {
-      (sendOtpBtn as HTMLButtonElement).disabled = false;
-      if (resendOtpBtn) (resendOtpBtn as HTMLButtonElement).disabled = false;
+    const email = data.email?.trim() ?? "";
+    if (!email) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+      errors.email = "Only Gmail addresses are accepted (e.g. yourname@gmail.com).";
     }
+
+    const message = data.message?.trim() ?? "";
+    if (!message) {
+      errors.message = "Message is required.";
+    } else if (message.length < 10) {
+      errors.message = "Message must be at least 10 characters.";
+    } else if (message.length > 4000) {
+      errors.message = "Message must be 4,000 characters or fewer.";
+    }
+
+    return errors;
   }
 
-  // ── Verify the entered code ────────────────────────────────────────────
-  async function verifyOtp() {
-    const email = (emailInput as HTMLInputElement).value.trim();
-    const otp = (otpInput as HTMLInputElement).value.trim();
-    if (otpErrorEl) otpErrorEl.textContent = "";
-
-    if (!otp) {
-      if (otpErrorEl) otpErrorEl.textContent = "Please enter the code.";
-      return;
-    }
-
-    (verifyOtpBtn as HTMLButtonElement).disabled = true;
-
-    try {
-      const res = await fetch("/api/contact/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-        credentials: "same-origin",
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (res.ok && body.ok) {
-        showVerified(email);
-        return;
-      }
-
-      if (otpErrorEl) otpErrorEl.textContent = body.error ?? "Incorrect code.";
-      if (body.expired || body.lockedOut) {
-        (otpInput as HTMLInputElement).disabled = true;
-        return; // leave verify button disabled — must resend or wait out lockout
-      }
-    } catch {
-      if (otpErrorEl) otpErrorEl.textContent = "Could not reach the server. Please check your connection.";
-    }
-
-    (verifyOtpBtn as HTMLButtonElement).disabled = false;
-  }
-
-  sendOtpBtn?.addEventListener("click", requestOtp);
-  resendOtpBtn?.addEventListener("click", requestOtp);
-  verifyOtpBtn?.addEventListener("click", verifyOtp);
-  changeEmailBtn?.addEventListener("click", resetToEmailStep);
-  useDifferentEmailBtn?.addEventListener("click", resetToEmailStep);
-
-  otpInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      verifyOtp();
-    }
-  });
-
-  emailInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      requestOtp();
-    }
-  });
-
-  // ── Final submit — only reachable once verifiedEmail is set ───────────
+  // ── Form Submit ────────────────────────────────────────────────────────
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors();
-    if (successEl) (successEl as HTMLElement).hidden = true;
-    if (errorEl) (errorEl as HTMLElement).hidden = true;
+    if (successEl) successEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
 
-    if (!verifiedEmail) {
-      if (errorMsg) errorMsg.textContent = "Please verify your email first.";
-      if (errorEl) (errorEl as HTMLElement).hidden = false;
+    const name = document.getElementById("name")?.value?.trim() ?? "";
+    const email = document.getElementById("email")?.value?.trim() ?? "";
+    const message = document.getElementById("message")?.value?.trim() ?? "";
+
+    // Client-side validation first
+    const clientErrors = validateClientSide({ name, email, message });
+    if (Object.keys(clientErrors).length > 0) {
+      Object.entries(clientErrors).forEach(([field, msg]) => setFieldError(field, msg));
+      document.getElementById(Object.keys(clientErrors)[0])?.focus();
       return;
     }
 
-    const data = {
-      name: (document.getElementById("name") as HTMLInputElement)?.value?.trim() ?? "",
-      email: verifiedEmail,
-      message: (document.getElementById("message") as HTMLTextAreaElement)?.value?.trim() ?? "",
-    };
+    // Get Turnstile token from hidden input
+    const turnstileResponse = document.getElementById('cf-turnstile-response')?.value;
 
-    const errors: Record<string, string> = {};
-    if (data.name.trim().length < 2) errors.name = "Please enter your name (at least 2 characters).";
-    if (data.message.trim().length < 10) errors.message = "Please enter a message (at least 10 characters).";
-
-    if (Object.keys(errors).length > 0) {
-      Object.entries(errors).forEach(([field, msg]) => setFieldError(field, msg));
-      document.getElementById(Object.keys(errors)[0])?.focus();
+    if (!turnstileResponse) {
+      setFieldError("turnstile", "Please complete the bot verification challenge.");
       return;
     }
 
@@ -604,24 +356,58 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ name, email, message, turnstileToken: turnstileResponse }),
         credentials: "same-origin",
       });
 
       const body = await res.json().catch(() => ({}));
 
       if (res.ok && body.ok) {
-        (form as HTMLFormElement).reset();
-        resetToEmailStep();
-        if (successEl) (successEl as HTMLElement).hidden = false;
+        form.reset();
+        document.getElementById('cf-turnstile-response').value = '';
+        if (window.turnstile) window.turnstile.reset();
+        if (successEl) successEl.hidden = false;
+        successEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Send the email via Web3Forms directly from the browser.
+        // Web3Forms' free tier rejects requests proxied through a
+        // backend/Worker ("Use our API in client side... Pro plan
+        // required") — it only accepts submissions that originate
+        // from the visitor's own browser. Our Worker already
+        // verified Turnstile + validated + saved to D1 above; this
+        // second, separate request is purely for email delivery and
+        // doesn't block the success message the user already saw.
+        const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY;
+        if (web3formsKey) {
+          fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_key: web3formsKey,
+              name,
+              email,
+              message,
+              subject: "[Portfolio Contact] Message from " + name,
+              from_name: name,
+              replyto: email,
+            }),
+          }).catch((err) => {
+            // Non-fatal — the message is already safely saved via D1.
+            console.warn("Web3Forms client-side send failed:", err);
+          });
+        }
       } else {
         const firstFieldError = body.errors ? Object.values(body.errors)[0] : null;
         if (errorMsg) errorMsg.textContent = body.error ?? firstFieldError ?? "Something went wrong. Please try again.";
-        if (errorEl) (errorEl as HTMLElement).hidden = false;
+        if (errorEl) errorEl.hidden = false;
+        document.getElementById('cf-turnstile-response').value = '';
+        if (window.turnstile) window.turnstile.reset();
       }
     } catch {
       if (errorMsg) errorMsg.textContent = "Could not reach the server. Please check your connection.";
-      if (errorEl) (errorEl as HTMLElement).hidden = false;
+      if (errorEl) errorEl.hidden = false;
+      document.getElementById('cf-turnstile-response').value = '';
+      if (window.turnstile) window.turnstile.reset();
     } finally {
       setLoading(false);
     }

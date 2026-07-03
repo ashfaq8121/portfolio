@@ -1,26 +1,55 @@
 name = "portfolio"
+account_id = "8da4d3d2a433962e4bba9d3cc26bf686"
 compatibility_date = "2024-04-03"
 
 [ai]
 binding = "AI"
-[assets]
 
+[assets]
 directory = "./dist"
 
 [vars]
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
 
-
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
 id = "75f6221e15ef407eb6460f2c9878b431"
 preview_id = "75f6221e15ef407eb6460f2c9878b431"
 
+# Astro's built-in session driver on the Cloudflare adapter. Not
+# referenced directly in our own code (login.ts/submissions.ts use
+# RATE_LIMIT_KV instead) — this is Astro's framework-level session
+# storage. No id/preview_id here on purpose: the previously-hardcoded
+# id became invalid (namespace was deleted/recreated at some point),
+# so this now inherits whatever's actually configured in the
+# Cloudflare dashboard for this Worker, same as it worked originally.
+[[kv_namespaces]]
+binding = "SESSION"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "portfolio-db"
 database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
+
+# IP-based rate limiter for the contact form. One DO instance per IP
+# (via idFromName), so the count-and-increment is strictly atomic —
+# unlike RATE_LIMIT_KV, which has up to ~60s of eventual-consistency
+# lag across edge locations and can be bypassed by two near-
+# simultaneous submissions. Used only by src/pages/api/contact.ts.
+#
+# script_name points at a SEPARATE Worker (../rate-limiter-worker) that
+# actually owns and exports the RateLimiter class. This project can't
+# own it directly: Astro's Cloudflare adapter bundles API routes as
+# lazily-loaded chunks rather than as part of the real Worker entry
+# point, so a class exported from contact.ts never lands where
+# Cloudflare requires a DO class to be exported from — the binding
+# would silently register as empty (as it did before this fix).
+# Deploy rate-limiter-worker FIRST, before deploying this project.
+[[durable_objects.bindings]]
+name = "CONTACT_RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "portfolio-rate-limiter"
 
 [observability]
 enabled = true
