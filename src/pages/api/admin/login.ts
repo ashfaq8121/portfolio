@@ -1,11 +1,10 @@
 import type { APIRoute } from "astro";
-import { env as cfEnv } from "cloudflare:workers";
 
 export const prerender = false;
 
-const SESSION_TTL_SECONDS = 86400; // 24 hours
-const LOGIN_RATE_LIMIT = 5;        // max 5 attempts
-const LOGIN_RATE_WINDOW_SECONDS = 3600; // 1 HOUR (60 minutes)
+const SESSION_TTL_SECONDS = 86400;
+const LOGIN_RATE_LIMIT = 5;
+const LOGIN_RATE_WINDOW_SECONDS = 3600;
 
 interface LoginAttemptData {
   count: number;
@@ -19,10 +18,11 @@ function generateSessionToken(): string {
 }
 
 export const POST: APIRoute = async ({ request }): Promise<Response> => {
-  const adminPassword = (cfEnv as any).ADMIN_PASSWORD;
-  const kv = (cfEnv as any).RATE_LIMIT_KV;
+  const { env } = await import("cloudflare:workers");
   
-  // Better IP detection for local + production
+  const adminPassword = env.ADMIN_PASSWORD;
+  const kv = env.RATE_LIMIT_KV;
+
   const ip = request.headers.get("CF-Connecting-IP") 
           ?? request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() 
           ?? "unknown";
@@ -60,7 +60,6 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
 
   // ── STEP 3: Check password ──
   if (!adminPassword || password !== adminPassword) {
-    // WRONG PASSWORD: Increment attempt counter
     if (kv) {
       try {
         const key = `admin-login-attempts:${ip}`;

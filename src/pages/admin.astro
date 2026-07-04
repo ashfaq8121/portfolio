@@ -51,7 +51,6 @@ export const prerender = false;
       overflow-x: hidden;
     }
 
-    /* ─── LOGIN ─── */
     #login-section {
       width: 100%;
       max-width: 420px;
@@ -180,7 +179,6 @@ export const prerender = false;
       font-weight: 500;
     }
 
-    /* ─── DASHBOARD ─── */
     #admin-section {
       display: none;
       width: 100%;
@@ -188,11 +186,7 @@ export const prerender = false;
       animation: fadeUp 0.5s ease both;
     }
 
-    .dash-header,
-    .stats-row,
-    .table-wrap {
-      margin: 20px;
-    }
+    .dash-header, .stats-row, .table-wrap { margin: 20px; }
 
     .dash-header {
       display: flex;
@@ -244,7 +238,6 @@ export const prerender = false;
 
     .btn-logout:hover { border-color: var(--border-hover); color: var(--text-dim); }
 
-    /* Stats */
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -284,7 +277,6 @@ export const prerender = false;
       white-space: nowrap;
     }
 
-    /* ─── TABLE ─── */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -349,27 +341,10 @@ export const prerender = false;
     .td-num { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; width: 48px; text-align: center; }
     .td-name { font-weight: 600; color: #fff; white-space: nowrap; min-width: 140px; }
     .td-email { min-width: 220px; }
-    .td-email a { color: #facc15; text-decoration: none; font-weight: 500; }
+    .td-email a { color: #facc15; text-decoration: none; font-weight: 500; word-break: break-all; overflow-wrap: break-word; }
     .td-email a:hover { text-decoration: underline; }
-
-    .td-email a {
-      word-break: break-all;
-      overflow-wrap: break-word;
-    }
-
-    .td-message {
-      max-width: 320px;
-      min-width: 260px;
-      color: var(--text-dim);
-      word-break: break-word;
-    }
-
-    .td-date {
-      white-space: nowrap;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      min-width: 170px;
-    }
+    .td-message { max-width: 320px; min-width: 260px; color: var(--text-dim); word-break: break-word; }
+    .td-date { white-space: nowrap; color: var(--text-muted); font-size: 0.8rem; min-width: 170px; }
 
     .btn-delete {
       display: inline-flex;
@@ -393,7 +368,6 @@ export const prerender = false;
       border-color: rgba(239,68,68,0.4);
     }
 
-    /* Empty state */
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -404,7 +378,6 @@ export const prerender = false;
     .empty-state p { font-size: 0.95rem; font-weight: 500; }
     .empty-state .empty-sub { font-size: 0.85rem; margin-top: 6px; color: var(--text-dim); }
 
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -440,7 +413,6 @@ export const prerender = false;
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 3px; }
 
-    /* ─── RESPONSIVE BREAKPOINTS ─── */
     @media (max-width: 1024px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       table { min-width: 860px; }
@@ -448,173 +420,49 @@ export const prerender = false;
     }
 
     @media (max-width: 768px) {
-      body {
-        padding: 20px 12px 60px;
-        overflow-x: hidden;
-      }
-
-      #login-section {
-        margin-top: 4vh;
-        padding: 0 4px;
-      }
-
+      body { padding: 20px 12px 60px; overflow-x: hidden; }
+      #login-section { margin-top: 4vh; padding: 0 4px; }
       .card { padding: 22px 18px; }
       .login-logo h1 { font-size: 1.25rem; }
       .login-logo { margin-bottom: 24px; }
-
-      .shield {
-        width: 52px;
-        height: 52px;
-        margin-bottom: 14px;
-      }
-
-      .shield svg {
-        width: 22px;
-        height: 22px;
-      }
-
-      .dash-header,
-      .stats-row,
-      .table-wrap {
-        margin: 12px;
-      }
-
-      .dash-header {
-        gap: 8px;
-      }
-
-      .dash-title {
-        gap: 8px;
-      }
-
-      .dash-title h1 {
-        font-size: 1.1rem;
-      }
-
-      .badge {
-        padding: 3px 10px;
-        font-size: 0.75rem;
-      }
-
-      .btn-logout span {
-        display: none;
-      }
-
-      .btn-logout {
-        padding: 8px 10px;
-        border-radius: var(--radius-sm);
-      }
-
-      .stats-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .stat-card {
-        padding: 16px;
-      }
-
-      .stat-label {
-        margin-bottom: 4px;
-        font-size: 0.7rem;
-      }
-
-      .stat-value {
-        font-size: 1.3rem;
-        text-align: left;
-      }
-
-      .stat-sub {
-        font-size: 0.72rem;
-        display: block;
-      }
-
-      .table-wrap {
-        display: block !important;
-        width: auto;
-      }
-
-      .table-scroll {
-        display: block !important;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      table {
-        min-width: 760px;
-      }
-
-      th, td {
-        padding: 12px 14px;
-        font-size: 0.8rem;
-      }
-
-      .td-num {
-        width: 42px;
-      }
-
-      .td-name {
-        min-width: 120px;
-      }
-
-      .td-email {
-        min-width: 200px;
-      }
-
-      .td-message {
-        min-width: 220px;
-        max-width: 220px;
-      }
-
-      .td-date {
-        min-width: 160px;
-      }
-
-      .btn-delete {
-        padding: 6px 10px;
-        font-size: 0.75rem;
-      }
-
-      .table-toolbar::after {
-        content: "Swipe sideways to view table";
-        margin-left: auto;
-        font-size: 0.72rem;
-        color: var(--text-muted);
-        white-space: nowrap;
-      }
-
-      .toast {
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
-        max-width: none;
-        width: auto;
-      }
+      .shield { width: 52px; height: 52px; margin-bottom: 14px; }
+      .shield svg { width: 22px; height: 22px; }
+      .dash-header, .stats-row, .table-wrap { margin: 12px; }
+      .dash-header { gap: 8px; }
+      .dash-title { gap: 8px; }
+      .dash-title h1 { font-size: 1.1rem; }
+      .badge { padding: 3px 10px; font-size: 0.75rem; }
+      .btn-logout span { display: none; }
+      .btn-logout { padding: 8px 10px; border-radius: var(--radius-sm); }
+      .stats-row { grid-template-columns: 1fr; gap: 10px; }
+      .stat-card { padding: 16px; }
+      .stat-label { margin-bottom: 4px; font-size: 0.7rem; }
+      .stat-value { font-size: 1.3rem; text-align: left; }
+      .stat-sub { font-size: 0.72rem; display: block; }
+      .table-wrap { display: block !important; width: auto; }
+      .table-scroll { display: block !important; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+      table { min-width: 760px; }
+      th, td { padding: 12px 14px; font-size: 0.8rem; }
+      .td-num { width: 42px; }
+      .td-name { min-width: 120px; }
+      .td-email { min-width: 200px; }
+      .td-message { min-width: 220px; max-width: 220px; }
+      .td-date { min-width: 160px; }
+      .btn-delete { padding: 6px 10px; font-size: 0.75rem; }
+      .table-toolbar::after { content: "Swipe sideways to view table"; margin-left: auto; font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+      .toast { left: 16px; right: 16px; bottom: 16px; max-width: none; width: auto; }
     }
 
     @media (max-width: 380px) {
       body { padding: 16px 10px 50px; }
       .card { padding: 18px 14px; }
       .login-logo h1 { font-size: 1.15rem; }
-
-      .dash-header,
-      .stats-row,
-      .table-wrap {
-        margin: 10px;
-      }
-
+      .dash-header, .stats-row, .table-wrap { margin: 10px; }
       .stats-row { gap: 8px; }
       .stat-card { padding: 12px; }
       .stat-value { font-size: 1.2rem; }
-
-      table {
-        min-width: 720px;
-      }
-
-      th, td {
-        padding: 10px 12px;
-      }
+      table { min-width: 720px; }
+      th, td { padding: 10px 12px; }
     }
   </style>
 </head>
@@ -634,7 +482,7 @@ export const prerender = false;
     <label class="form-label" for="password">Password</label>
     <div class="input-wrap">
       <input type="password" id="password" placeholder="Enter admin password" autocomplete="current-password" />
-      <button class="toggle-pw" type="button" onclick="togglePw()" title="Show/hide password">
+      <button class="toggle-pw" type="button" id="btn-toggle-pw" title="Show/hide password">
         <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
         </svg>
@@ -644,7 +492,7 @@ export const prerender = false;
         </svg>
       </button>
     </div>
-    <button class="btn-login" onclick="login()">Sign in</button>
+    <button class="btn-login" id="btn-login">Sign in</button>
     <div class="error-msg" id="login-error">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <span id="login-error-text">Incorrect password. Please try again.</span>
@@ -658,7 +506,7 @@ export const prerender = false;
       <h1>Contact Submissions</h1>
       <span class="badge" id="count-badge">0 entries</span>
     </div>
-    <button class="btn-logout" onclick="logout()">
+    <button class="btn-logout" id="btn-logout">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       <span>Logout</span>
     </button>
@@ -704,178 +552,207 @@ export const prerender = false;
   </div>
 </div>
 
-<script is:inline>
-  function togglePw() {
-    const input = document.getElementById('password');
-    const on = document.getElementById('eye-icon');
-    const off = document.getElementById('eye-off-icon');
-    if (input.type === 'password') {
-      input.type = 'text';
-      on.style.display = 'none';
-      off.style.display = 'block';
-    } else {
-      input.type = 'password';
-      on.style.display = 'block';
-      off.style.display = 'none';
-    }
-  }
+<script>
+  (function() {
+    'use strict';
 
-  async function login() {
-    const password = document.getElementById('password').value;
-    const errEl = document.getElementById('login-error');
-    const errText = document.getElementById('login-error-text');
-    errEl.style.display = 'none';
+    function $(id) { return document.getElementById(id); }
 
-    let res, json;
-    try {
-      res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-        credentials: 'same-origin'
+    var passwordInput = $('password');
+    var eyeOn = $('eye-icon');
+    var eyeOff = $('eye-off-icon');
+    var btnToggle = $('btn-toggle-pw');
+    var btnLogin = $('btn-login');
+    var btnLogout = $('btn-logout');
+    var errEl = $('login-error');
+    var errText = $('login-error-text');
+
+    // Toggle password visibility
+    if (btnToggle && passwordInput && eyeOn && eyeOff) {
+      btnToggle.addEventListener('click', function() {
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          eyeOn.style.display = 'none';
+          eyeOff.style.display = 'block';
+        } else {
+          passwordInput.type = 'password';
+          eyeOn.style.display = 'block';
+          eyeOff.style.display = 'none';
+        }
       });
-      json = await res.json().catch(() => ({}));
-    } catch {
-      errText.textContent = 'Network error. Please try again.';
-      errEl.style.display = 'flex';
-      return;
     }
 
-    if (res.ok) {
-      showDashboard();
-    } else {
-      // Show the server's actual message (wrong password vs. rate-limit lockout)
-      errText.textContent = json && json.error ? json.error : 'Incorrect password. Please try again.';
-      errEl.style.display = 'flex';
+    // Login
+    async function doLogin() {
+      if (!passwordInput) return;
+      
+      var password = passwordInput.value;
+      errEl.style.display = 'none';
+
+      var res, json;
+      try {
+        res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: password }),
+          credentials: 'same-origin'
+        });
+        json = await res.json().catch(function() { return {}; });
+      } catch (e) {
+        errText.textContent = 'Network error. Please try again.';
+        errEl.style.display = 'flex';
+        return;
+      }
+
+      if (res.ok) {
+        showDashboard();
+      } else {
+        errText.textContent = (json && json.error) ? json.error : 'Incorrect password. Please try again.';
+        errEl.style.display = 'flex';
+      }
     }
-  }
 
-  document.getElementById('password').addEventListener('keydown', e => {
-    if (e.key === 'Enter') login();
-  });
+    if (btnLogin) {
+      btnLogin.addEventListener('click', doLogin);
+    }
 
-  // Pop the error away as soon as the person starts typing again —
-  // it should only reappear the next time they actually submit and fail.
-  document.getElementById('password').addEventListener('input', () => {
-    document.getElementById('login-error').style.display = 'none';
-  });
-
-  function showDashboard() {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('admin-section').style.display = 'block';
-    loadSubmissions();
-  }
-
-  async function logout() {
-    await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
-    location.reload();
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleString('en-US', {
-        timeZone: 'Asia/Kolkata',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+    if (passwordInput) {
+      passwordInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
       });
-    } catch {
-      return dateStr;
+      passwordInput.addEventListener('input', function() {
+        errEl.style.display = 'none';
+      });
     }
-  }
 
-  function esc(str) {
-    return String(str)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
-  }
+    // Logout
+    if (btnLogout) {
+      btnLogout.addEventListener('click', async function() {
+        await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
+        location.reload();
+      });
+    }
 
-  function showToast(msg, type) {
-    const existing = document.querySelector('.toast');
-    if (existing) existing.remove();
+    function showDashboard() {
+      $('login-section').style.display = 'none';
+      $('admin-section').style.display = 'block';
+      loadSubmissions();
+    }
 
-    const t = document.createElement('div');
-    t.className = 'toast';
-    const color = type === 'success' ? '#22c55e' : '#ef4444';
-    t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2"><path d="${type === 'success' ? 'M20 6L9 17l-5-5' : 'M18 6L6 18M6 6l12 12'}"/></svg><span>${msg}</span>`;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
-  }
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        var d = new Date(dateStr);
+        return d.toLocaleString('en-US', {
+          timeZone: 'Asia/Kolkata',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return dateStr;
+      }
+    }
 
-  async function del(id) {
-    if (!confirm('Delete this submission?')) return;
-    const res = await fetch('/api/admin/submissions?id=' + id, {
-      method: 'DELETE',
-      credentials: 'same-origin'
+    function esc(str) {
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    function showToast(msg, type) {
+      var existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+
+      var t = document.createElement('div');
+      t.className = 'toast';
+      var color = type === 'success' ? '#22c55e' : '#ef4444';
+      t.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2"><path d="' + (type === 'success' ? 'M20 6L9 17l-5-5' : 'M18 6L6 18M6 6l12 12') + '"/></svg><span>' + msg + '</span>';
+      document.body.appendChild(t);
+      setTimeout(function() { t.remove(); }, 3000);
+    }
+
+    // Delete handler using event delegation
+    var tbody = $('submissions-body');
+    if (tbody) {
+      tbody.addEventListener('click', async function(e) {
+        var btn = e.target.closest('.btn-delete');
+        if (!btn) return;
+        
+        var id = btn.getAttribute('data-id');
+        if (!id) return;
+        
+        if (!confirm('Delete this submission?')) return;
+        
+        var res = await fetch('/api/admin/submissions?id=' + id, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        });
+
+        if (res.ok) {
+          showToast('Deleted successfully', 'success');
+          loadSubmissions();
+        } else {
+          showToast('Failed to delete', 'error');
+        }
+      });
+    }
+
+    async function loadSubmissions() {
+      var res = await fetch('/api/admin/submissions', { credentials: 'same-origin' });
+      if (res.status === 401) {
+        location.reload();
+        return;
+      }
+
+      var json = await res.json();
+      var data = json.data || [];
+
+      $('count-badge').textContent = data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
+      $('stat-total').textContent = data.length;
+      $('stat-latest').textContent = data.length ? data[0].name : '—';
+      $('stat-latest-email').textContent = data.length ? data[0].email : 'No submissions yet';
+      $('stat-latest-date').textContent = data.length ? formatDate(data[0].submitted_at) : '—';
+      $('table-info').textContent = data.length ? 'Showing ' + data.length + ' message' + (data.length !== 1 ? 's' : '') : 'All messages';
+
+      var emptyHtml = '<div class="empty-state">' +
+        '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+        '<p>No submissions yet</p>' +
+        '<p class="empty-sub">Contact form entries will appear here.</p>' +
+      '</div>';
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6">' + emptyHtml + '</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(function(row, i) {
+        return '<tr id="row-' + row.id + '">' +
+          '<td class="td-num">' + (i + 1) + '</td>' +
+          '<td class="td-name">' + esc(row.name) + '</td>' +
+          '<td class="td-email"><a href="mailto:' + esc(row.email) + '">' + esc(row.email) + '</a></td>' +
+          '<td class="td-message">' + esc(row.message) + '</td>' +
+          '<td class="td-date">' + formatDate(row.submitted_at) + '</td>' +
+          '<td>' +
+            '<button class="btn-delete" data-id="' + row.id + '">' +
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+              'Delete' +
+            '</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // Check if already logged in
+    fetch('/api/admin/submissions', { credentials: 'same-origin' }).then(function(res) {
+      if (res.ok) showDashboard();
     });
 
-    if (res.ok) {
-      showToast('Deleted successfully', 'success');
-      loadSubmissions();
-    } else {
-      showToast('Failed to delete', 'error');
-    }
-  }
-
-  async function loadSubmissions() {
-    const res = await fetch('/api/admin/submissions', { credentials: 'same-origin' });
-    if (res.status === 401) {
-      location.reload();
-      return;
-    }
-
-    const json = await res.json();
-    const data = json.data || [];
-
-    document.getElementById('count-badge').textContent =
-      data.length + ' entr' + (data.length === 1 ? 'y' : 'ies');
-
-    document.getElementById('stat-total').textContent = data.length;
-    document.getElementById('stat-latest').textContent = data.length ? data[0].name : '—';
-    document.getElementById('stat-latest-email').textContent = data.length ? data[0].email : 'No submissions yet';
-    document.getElementById('stat-latest-date').textContent = data.length ? formatDate(data[0].submitted_at) : '—';
-    document.getElementById('table-info').textContent =
-      data.length ? `Showing ${data.length} message${data.length !== 1 ? 's' : ''}` : 'All messages';
-
-    const emptyHtml = `<div class="empty-state">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <p>No submissions yet</p>
-      <p class="empty-sub">Contact form entries will appear here.</p>
-    </div>`;
-
-    const tbody = document.getElementById('submissions-body');
-
-    if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = data.map((row, i) => `
-      <tr id="row-${row.id}">
-        <td class="td-num">${i + 1}</td>
-        <td class="td-name">${esc(row.name)}</td>
-        <td class="td-email"><a href="mailto:${esc(row.email)}">${esc(row.email)}</a></td>
-        <td class="td-message">${esc(row.message)}</td>
-        <td class="td-date">${formatDate(row.submitted_at)}</td>
-        <td>
-          <button class="btn-delete" onclick="del(${row.id})">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            Delete
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  fetch('/api/admin/submissions', { credentials: 'same-origin' }).then(res => {
-    if (res.ok) showDashboard();
-  });
+  })();
 </script>
 
 </body>

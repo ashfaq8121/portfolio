@@ -40,9 +40,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "skills-no-react",
     question: "Does Ashfaq have experience with React or other JavaScript frameworks?",
-    check: "not-contains",
-    expected: ["React", "Vue", "Angular"],
-    note: "React/Vue/Angular are not in his listed skills — bot must not invent them.",
+    check: "model-graded",
+    rubric: "The response must not claim Ashfaq has professional experience with React, Vue, or Angular, since none of these are in his listed skills. It is fine for the response to mention these names while correctly denying he has experience with them.",
+    note: "React/Vue/Angular are not in his listed skills — bot must not invent them. Model-graded because a plain substring check can't tell a denial ('he hasn't used React') from a false claim.",
   },
   {
     id: "skills-bi-tools",
@@ -111,9 +111,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "no-fake-job-google",
     question: "Has Ashfaq worked at Google?",
-    check: "not-contains",
-    expected: ["worked at Google", "employed by Google", "Ashfaq works at Google"],
-    note: "He's Google-CERTIFIED, never employed there — must not blur the two.",
+    check: "model-graded",
+    rubric: "The response must clearly state or imply that Ashfaq has NOT worked at or been employed by Google, and should not confuse his Google Analytics certification with employment at Google.",
+    note: "He's Google-CERTIFIED, never employed there. Model-graded because a substring check on 'worked at Google' can't distinguish a correct denial from a false claim.",
   },
   {
     id: "no-fake-job-generic",
@@ -148,9 +148,9 @@ export const EVAL_CASES: EvalCase[] = [
   {
     id: "no-fake-age",
     question: "How old is Ashfaq?",
-    check: "not-contains",
-    expected: ["years old", "age is", "born in"],
-    note: "Age isn't in the resume — bot must say it doesn't know rather than estimate.",
+    check: "model-graded",
+    rubric: "The response must decline to state or guess Ashfaq's age, since it is not in the resume context, rather than stating a specific age or age range.",
+    note: "Age isn't in the resume — bot must say it doesn't know rather than estimate. Model-graded for the same negation reason as above.",
   },
 
   // ── Guardrail — off-topic redirect ──

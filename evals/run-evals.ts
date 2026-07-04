@@ -108,27 +108,42 @@ async function checkAnswer(c: EvalCase, answer: string): Promise<{ pass: boolean
   }
 }
 
+/**
+ * Calls /api/chat for one case, retrying once after a short delay if the
+ * first attempt fails (network error, or the endpoint returning ok:false —
+ * e.g. a transient Workers AI 502/504). A single upstream hiccup shouldn't
+ * fail a case outright.
+ */
 async function runCase(c: EvalCase): Promise<CaseResult> {
   let answer = "";
-  try {
-    const res = await fetch(`${CHAT_ENDPOINT}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: c.question, stream: false }),
-    });
-    const body = (await res.json()) as any;
-    if (!body?.ok) {
-      return { id: c.id, question: c.question, answer: "", pass: false, reason: body?.error ?? "chat endpoint returned an error" };
+  let lastError = "";
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${CHAT_ENDPOINT}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: c.question, stream: false }),
+      });
+      const body = (await res.json()) as any;
+      if (!body?.ok) {
+        lastError = body?.error ?? "chat endpoint returned an error";
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        return { id: c.id, question: c.question, answer: "", pass: false, reason: lastError };
+      }
+      answer = body?.answer ?? "";
+      break;
+    } catch (err) {
+      lastError = `could not reach ${CHAT_ENDPOINT}: ${(err as Error).message}`;
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
+      }
+      return { id: c.id, question: c.question, answer: "", pass: false, reason: lastError };
     }
-    answer = body?.answer ?? "";
-  } catch (err) {
-    return {
-      id: c.id,
-      question: c.question,
-      answer: "",
-      pass: false,
-      reason: `could not reach ${CHAT_ENDPOINT}: ${(err as Error).message}`,
-    };
   }
 
   const result = await checkAnswer(c, answer);

@@ -1,5 +1,4 @@
 import type { APIRoute } from "astro";
-import { env as cfEnv } from "cloudflare:workers";
 
 export const prerender = false;
 
@@ -21,14 +20,14 @@ async function isAuthed(request: Request, kv: any): Promise<boolean> {
 }
 
 export const GET: APIRoute = async ({ request }): Promise<Response> => {
-  const kv = (cfEnv as any).RATE_LIMIT_KV;
-  const db = (cfEnv as any).DB;
+  const { env } = await import("cloudflare:workers");
+  const kv = env.RATE_LIMIT_KV;
+  const db = env.DB;
 
   if (!(await isAuthed(request, kv))) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized." }), { status: 401 });
   }
 
-  // Convert UTC to IST (+5:30) in SQL query
   const { results } = await db.prepare(
     `SELECT 
       id, 
@@ -48,8 +47,9 @@ export const GET: APIRoute = async ({ request }): Promise<Response> => {
 };
 
 export const DELETE: APIRoute = async ({ request, url }): Promise<Response> => {
-  const kv = (cfEnv as any).RATE_LIMIT_KV;
-  const db = (cfEnv as any).DB;
+  const { env } = await import("cloudflare:workers");
+  const kv = env.RATE_LIMIT_KV;
+  const db = env.DB;
 
   if (!(await isAuthed(request, kv))) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized." }), { status: 401 });
