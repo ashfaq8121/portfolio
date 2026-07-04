@@ -75,45 +75,6 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  // ── IP rate limit (Durable Object) ──
-  // Runs first, before parsing or Turnstile, since it's the cheapest
-  // check and blocks abuse before we spend a Turnstile verify call.
-  // 3 messages per IP per rolling-off 1-hour window, counted from the
-  // first message in that window (not a sliding window). Uses a
-  // Durable Object rather than KV because DO reads/writes for a given
-  // IP are strictly serialized on one instance — no eventual-
-  // consistency gap for two near-simultaneous requests to both slip
-  // through, which KV's ~60s cross-edge propagation delay allows.
-  const limiterBinding = (cfEnv as any).CONTACT_RATE_LIMITER;
-  if (limiterBinding) {
-    try {
-      const id = limiterBinding.idFromName(ip);
-      const stub = limiterBinding.get(id);
-      const limitRes = await stub.fetch("https://do/check");
-      const limitData = (await limitRes.json()) as {
-        allowed: boolean;
-        retryAfterSeconds?: number;
-      };
-
-      if (!limitData.allowed) {
-        const minutes = Math.ceil((limitData.retryAfterSeconds ?? 3600) / 60);
-        console.warn(`[RateLimiter] blocked IP: ${ip}`);
-        return json(
-          {
-            ok: false,
-            error: `Too many messages from this IP. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
-          },
-          429,
-          cors
-        );
-      }
-    } catch (err) {
-      // Fail open rather than break the form if the DO itself errors —
-      // Turnstile is still there as a second layer of defense.
-      console.error("[RateLimiter] check error:", err);
-    }
-  }
-
   let name = "", email = "", message = "", turnstileToken = "";
 
   try {
@@ -167,7 +128,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
 
   const db = (cfEnv as any).DB;
 
-  // ── STEP 1: ALWAYS save to D1 database ───────────────────────────────
+  // ── STEP 1: ALWAYS save to D1 database ──
   let savedToDb = false;
   if (db) {
     try {
@@ -178,20 +139,46 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
       savedToDb = true;
       console.log("[D1] ✅ Submission saved successfully");
     } catch (err) {
-      console.error("[D1] ❌ Save error:", err);
+      console.error("[D1] ❌ Insert failed:", err);
     }
   }
 
-  // ── STEP 2: ALWAYS return success to user ────────────────────────────
-  // Email is NOT sent from here. Web3Forms' free tier rejects requests
-  // proxied through a backend/Worker — it only accepts submissions that
-  // originate directly from the visitor's browser. So contact.astro's
-  // client script makes a second, separate request straight to Web3Forms
-  // after this endpoint responds. D1 above is the durable record
-  // regardless of whether that client-side email send succeeds.
-  // User sees: "Message sent! I will get back to you soon."
-  return json({ 
-    ok: true, 
-    message: "Message sent! I will get back to you soon." 
+  // ── STEP 2: Email via Web3Forms (best-effort) ──
+  // Web3Forms' free tier requires client-side origin. We send from the
+  // Worker anyway; if it rejects us, the message is still safely in D1.
+  let emailSent = false;
+  const web3formsKey = (cfEnv as any).WEB3FORMS_KEY;
+  const ownerEmail = (cfEnv as any).TO_EMAIL;
+
+  if (web3formsKey && ownerEmail) {
+    try {
+      const emailRes = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: web3formsKey,
+          name,
+          email,
+          message,
+          subject: "[Portfolio Contact] Message from " + name,
+          from_name: name,
+          replyto: email,
+          to: ownerEmail,
+        }),
+      });
+      emailSent = emailRes.ok;
+      if (!emailRes.ok) {
+        console.warn("[Web3Forms] email send failed:", emailRes.status, await emailRes.text());
+      }
+    } catch (err) {
+      console.error("[Web3Forms] email fetch error:", err);
+    }
+  }
+
+  return json({
+    ok: true,
+    message: savedToDb
+      ? "Message saved successfully. I'll get back to you soon!"
+      : "Message received! I'll get back to you soon.",
   }, 200, cors);
 };
