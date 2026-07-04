@@ -3,8 +3,13 @@
 // Adjust this import to match whatever layout your other pages use
 // (contact.astro / about.astro etc.) — copy their exact import line if different.
 import BaseLayout from "../layouts/BaseLayout.astro";
----
 
+// Per-request nonce set by src/middleware.ts, allow-listed in that same
+// request's Content-Security-Policy header. Passed to this page's own
+// <script> tag below so the browser will actually execute it instead of
+// blocking it as an unauthorized inline script.
+const nonce = Astro.locals.cspNonce as string;
+---
 <BaseLayout title="Ask About Me — Ashfaq ur Rahman" description="Browse questions about Ashfaq's background, grounded in his real résumé.">
   <section class="ask-section">
     <div class="ask-intro">
@@ -273,7 +278,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
   }
 </style>
-<script>
+<script nonce={nonce}>
   // ── Category tree ──
   type Leaf = { label: string; question: string };
   const CATEGORY_TREE: Record<string, Leaf[]> = {
