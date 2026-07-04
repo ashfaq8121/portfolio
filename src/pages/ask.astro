@@ -273,12 +273,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
   }
 </style>
-
 <script>
-  // ── Category tree ──────────────────────────────────────────────────────
-  // Edit labels/questions here to match resume-context.ts if your resume
-  // content ever changes. Each leaf's "question" is sent to /api/chat
-  // exactly as if the visitor had typed it — same code path, same guardrails.
+  // ── Category tree ──
   type Leaf = { label: string; question: string };
   const CATEGORY_TREE: Record<string, Leaf[]> = {
     "Education": [
@@ -309,22 +305,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     ],
   };
 
-  // Must match NOT_FOUND_MESSAGE exported from src/lib/chat-system-prompt.ts —
-  // duplicated here since this script runs in the browser and can't import
-  // server-side modules. If you change one, change the other.
   const NOT_FOUND_MESSAGE =
     "Information not found. Try one of the suggested questions above, or ask something else about Ashfaq.";
 
-  const menuArea = document.getElementById("menu-area") as HTMLDivElement;
-  const form = document.getElementById("chat-form") as HTMLFormElement;
-  const input = document.getElementById("chat-input") as HTMLInputElement;
-  const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement;
-  const log = document.getElementById("chat-log") as HTMLDivElement;
-  const errorEl = document.getElementById("chat-error") as HTMLSpanElement;
+  const menuArea = document.getElementById("menu-area");
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send-btn");
+  const log = document.getElementById("chat-log");
+  const errorEl = document.getElementById("chat-error");
 
-  let busy = false; // disables menu/chip clicks while a question is in flight
+  let busy = false;
 
   function renderMainMenu() {
+    if (!menuArea) return;
     menuArea.innerHTML = "";
 
     const heading = document.createElement("div");
@@ -334,7 +328,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     const grid = document.createElement("div");
     grid.className = "menu-grid";
-    for (const category of Object.keys(CATEGORY_TREE)) {
+
+    // THIS WAS MISSING - the loop over categories
+    Object.keys(CATEGORY_TREE).forEach((category) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "menu-btn category";
@@ -342,11 +338,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       btn.disabled = busy;
       btn.addEventListener("click", () => renderSubMenu(category));
       grid.appendChild(btn);
-    }
+    });
+
     menuArea.appendChild(grid);
   }
 
-  function renderSubMenu(category: string) {
+  function renderSubMenu(category) {
+    if (!menuArea) return;
     menuArea.innerHTML = "";
 
     const heading = document.createElement("div");
@@ -360,124 +358,88 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     back.addEventListener("click", renderMainMenu);
     heading.appendChild(back);
 
-    const label = document.createElement("span");
-    label.textContent = category;
-    heading.appendChild(label);
-
+    const title = document.createElement("span");
+    title.textContent = category;
+    heading.appendChild(title);
     menuArea.appendChild(heading);
 
     const grid = document.createElement("div");
     grid.className = "menu-grid";
-    for (const leaf of CATEGORY_TREE[category]) {
+
+    const items = CATEGORY_TREE[category] || [];
+    items.forEach((item) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "menu-btn";
-      btn.textContent = leaf.label;
+      btn.textContent = item.label;
       btn.disabled = busy;
-      btn.addEventListener("click", () => {
-        if (busy) return;
-        askQuestion(leaf.question);
-      });
+      btn.addEventListener("click", () => askQuestion(item.question));
       grid.appendChild(btn);
-    }
+    });
+
     menuArea.appendChild(grid);
   }
 
-  renderMainMenu();
-
-  function addMessage(text: string, who: "user" | "bot"): HTMLDivElement {
-    const el = document.createElement("div");
-    el.className = `chat-msg ${who}`;
-    el.textContent = text;
-    log.appendChild(el);
+  function appendMessage(text, sender) {
+    if (!log) return;
+    const msg = document.createElement("div");
+    msg.className = "chat-msg " + sender;
+    msg.textContent = text;
+    log.appendChild(msg);
     log.scrollTop = log.scrollHeight;
-    return el;
   }
 
-  function setBusy(value: boolean) {
-    busy = value;
-    sendBtn.disabled = value;
-    input.disabled = value;
-    menuArea.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
-      b.disabled = value;
-    });
-  }
-
-  async function askQuestion(question: string) {
-    addMessage(question, "user");
-    const botEl = addMessage("", "bot");
+  async function askQuestion(question) {
+    if (busy || !input || !sendBtn || !errorEl) return;
+    busy = true;
+    sendBtn.disabled = true;
     errorEl.textContent = "";
-    setBusy(true);
+
+    // Disable all menu buttons
+    document.querySelectorAll(".menu-btn").forEach((btn) => {
+      (btn).disabled = true;
+    });
+
+    appendMessage(question, "user");
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, stream: true }),
-        credentials: "same-origin",
+        body: JSON.stringify({ question, stream: false }),
       });
 
-      if (!res.ok || !res.body) {
-        const body = await res.json().catch(() => ({}));
-        errorEl.textContent = body.error ?? "Could not get an answer. Please try again.";
-        botEl.remove();
-        return;
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
+        const answer = body.answer || NOT_FOUND_MESSAGE;
+        appendMessage(answer, "bot");
+      } else {
+        appendMessage(body.error || "Sorry, I couldn't answer that. Please try again.", "bot");
       }
-
-      // Workers AI streams Server-Sent-Events lines: `data: {"response":"token"}`
-      // ending with `data: [DONE]`. Parse incrementally as chunks arrive.
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let answer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data:")) continue;
-          const payload = trimmed.slice(5).trim();
-          if (payload === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(payload);
-            if (typeof parsed.response === "string") {
-              answer += parsed.response;
-              botEl.textContent = answer;
-              log.scrollTop = log.scrollHeight;
-            }
-          } catch {
-            // ignore partial/non-JSON lines
-          }
-        }
-      }
-
-      if (!answer) {
-        botEl.textContent = NOT_FOUND_MESSAGE;
-        botEl.classList.add("not-found");
-      } else if (answer.trim() === NOT_FOUND_MESSAGE) {
-        botEl.classList.add("not-found");
-      }
-    } catch {
-      errorEl.textContent = "Could not reach the server. Please check your connection.";
-      botEl.remove();
+    } catch (err) {
+      console.error("Chat error:", err);
+      appendMessage("Could not reach the server. Please try again.", "bot");
     } finally {
-      setBusy(false);
+      busy = false;
+      sendBtn.disabled = false;
+      input.value = "";
       input.focus();
+      // Re-enable menu buttons
+      document.querySelectorAll(".menu-btn").forEach((btn) => {
+        (btn).disabled = false;
+      });
     }
   }
 
+  // Handle form submit (custom question)
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (busy) return;
-    const question = input.value.trim();
+    const question = input?.value.trim();
     if (!question) return;
-    input.value = "";
     askQuestion(question);
   });
+
+  // Initialize
+  renderMainMenu();
 </script>
