@@ -8,6 +8,19 @@
  * site-wide concerns, not endpoint-specific. Centralizing them here means
  * a new route can't accidentally ship without protection — it's applied
  * even to routes nobody remembers to update.
+ *
+ * NONCE: contact.astro and ask.astro each have an inline <script> block
+ * (form-submit handling / chat widget logic). A strict CSP without
+ * 'unsafe-inline' blocks ANY inline script by default — including our own
+ * first-party ones — which is exactly what was breaking the contact form
+ * and chatbot in production (browser console: "Executing inline script
+ * violates ... script-src ... The action has been blocked."). Rather than
+ * loosen the policy with 'unsafe-inline' (which would let an attacker's
+ * injected inline script run too, defeating the point of CSP), we generate
+ * a random, single-use nonce per request here, expose it via
+ * context.locals.cspNonce, and each .astro page adds nonce={nonce} to its
+ * own <script> tags. Only scripts carrying that exact nonce are allowed to
+ * run — ours (which know it) and nobody else's (which can't guess it).
  */
 import { defineMiddleware } from "astro:middleware";
 
@@ -28,7 +41,18 @@ const WEB3FORMS_API_SRC = "https://api.web3forms.com";
 const GOOGLE_FONTS_CSS_SRC = "https://fonts.googleapis.com";
 const GOOGLE_FONTS_FILE_SRC = "https://fonts.gstatic.com";
 
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes));
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
+  const nonce = generateNonce();
+  // Exposed so any .astro page can read it: const nonce = Astro.locals.cspNonce;
+  // then add nonce={nonce} to its own <script> tags.
+  (context.locals as any).cspNonce = nonce;
+
   const response = await next();
 
   // Clone-and-set rather than mutate in place: Response headers from some
@@ -39,9 +63,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      // 'self' covers our own bundled JS. Turnstile's script is the one
-      // legitimate external script this site loads.
-      `script-src 'self' ${TURNSTILE_SCRIPT_SRC}`,
+      // 'self' covers our own bundled JS. 'nonce-...' allows this specific
+      // request's first-party inline <script> blocks (see file header
+      // comment above). Turnstile's script is the one legitimate external
+      // script this site loads.
+      `script-src 'self' 'nonce-${nonce}' ${TURNSTILE_SCRIPT_SRC}`,
       // Inline <style> blocks are used in .astro components' scoped styles,
       // which Astro injects as inline <style> tags at build time — there is
       // no practical way to hash/nonce every one of these without breaking

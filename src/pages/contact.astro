@@ -7,6 +7,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 //   local (.env)              -> Cloudflare's always-pass test key
 //   production (Pages build)  -> real sitekey, domain-matched
 const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+
+// Per-request nonce set by src/middleware.ts, allow-listed in that same
+// request's Content-Security-Policy header. Passed to this page's own
+// <script> tags below so the browser will actually execute them instead
+// of blocking them as unauthorized inline scripts.
+const nonce = Astro.locals.cspNonce as string;
 ---
 
 <BaseLayout
@@ -258,9 +264,9 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 </style>
 
 <!-- Cloudflare Turnstile Script -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script nonce={nonce} src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
-<script>
+<script nonce={nonce}>
   // Global callback for Turnstile
   window.turnstileCallback = function(token) {
     document.getElementById('cf-turnstile-response').value = token;
