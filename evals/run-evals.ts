@@ -109,10 +109,11 @@ async function checkAnswer(c: EvalCase, answer: string): Promise<{ pass: boolean
 }
 
 /**
- * Calls /api/chat for one case, retrying once after a short delay if the
+ * Calls /api/chat for one case, retrying once after a longer delay if the
  * first attempt fails (network error, or the endpoint returning ok:false —
- * e.g. a transient Workers AI 502/504). A single upstream hiccup shouldn't
- * fail a case outright.
+ * e.g. a transient Workers AI 502/504, or the free-tier rate limit getting
+ * tripped by requests arriving too close together). A single upstream
+ * hiccup shouldn't fail a case outright.
  */
 async function runCase(c: EvalCase): Promise<CaseResult> {
   let answer = "";
@@ -129,7 +130,9 @@ async function runCase(c: EvalCase): Promise<CaseResult> {
       if (!body?.ok) {
         lastError = body?.error ?? "chat endpoint returned an error";
         if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 1500));
+          // 4s, not 1.5s — Workers AI's free-tier rate limit needs more
+          // room to reset than a quick retry gives it.
+          await new Promise((r) => setTimeout(r, 4000));
           continue;
         }
         return { id: c.id, question: c.question, answer: "", pass: false, reason: lastError };
@@ -139,7 +142,7 @@ async function runCase(c: EvalCase): Promise<CaseResult> {
     } catch (err) {
       lastError = `could not reach ${CHAT_ENDPOINT}: ${(err as Error).message}`;
       if (attempt === 0) {
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 4000));
         continue;
       }
       return { id: c.id, question: c.question, answer: "", pass: false, reason: lastError };
@@ -160,6 +163,11 @@ async function main() {
     const icon = r.pass === true ? "✅" : r.pass === "skipped" ? "⏭️ " : "❌";
     console.log(`${icon} ${r.id} — ${c.question}`);
     if (r.pass === false) console.log(`    ${r.reason}`);
+    // Small gap between cases so 21 requests don't all land on Workers AI
+    // in the same second — free-tier accounts have a request-rate ceiling,
+    // not just a daily cap, and bursting past it is what was causing
+    // random cases to fail instead of a consistent set.
+    await new Promise((r) => setTimeout(r, 800));
   }
 
   const total = results.length;
