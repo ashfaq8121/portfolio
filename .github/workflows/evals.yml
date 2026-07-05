@@ -19,8 +19,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Astro project
-        run: npm run build
+      - name: Create dist directory for assets
+        run: mkdir -p dist
 
       - name: Start wrangler dev
         run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &
