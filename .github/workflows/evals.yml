@@ -14,6 +14,8 @@ name: Evals
 on:
   pull_request:
     branches: [main]
+  push:  # temporary, for testing
+    branches: [feat/ext-4-security-adversarial]
 
 jobs:
   evals:
