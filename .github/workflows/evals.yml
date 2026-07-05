@@ -1,4 +1,13 @@
 # .github/workflows/evals.yml
+#
+# Runs the eval suite against a live `wrangler dev` instance on
+# every pull request. Deliberately informational, not merge-blocking —
+# see DECISIONS.md for the reasoning (AI call cost/latency shouldn't gate
+# every PR the way unit tests do).
+#
+# IMPORTANT: do NOT add "evals" as a required status check in the GitHub
+# branch protection settings for `main` — that would make it merge-blocking
+# again, defeating the point of `continue-on-error` below.
 
 name: Evals
 
@@ -19,6 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Start wrangler dev locally (no --remote, since Durable Objects are removed)
       - name: Start wrangler dev
         run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &
         env:
@@ -42,6 +52,8 @@ jobs:
           exit 1
         shell: bash
 
+      # Runs even on success, so you can always sanity-check what wrangler
+      # actually logged during startup and while serving eval traffic.
       - name: Show wrangler dev log
         if: always()
         run: cat wrangler.log || echo "(no wrangler.log found)"
@@ -66,4 +78,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wrangler-log
-          path: wrangler
+          path: wrangler.log
