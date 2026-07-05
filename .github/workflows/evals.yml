@@ -14,10 +14,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22  # ← CHANGED FROM 20
+          node-version: 22
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build Astro project
+        run: npm run build
 
       - name: Start wrangler dev
         run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &
