@@ -9,8 +9,8 @@ interface ContactResponse {
   message?: string;
 }
 
-function corsHeaders(request: Request): Record<string, string> {
-  const allowedOrigin = (cfEnv as any).SITE_URL as string | undefined;
+function corsHeaders(request: Request, env: any): Record<string, string> {
+  const allowedOrigin = env?.SITE_URL as string | undefined;
   const origin = request.headers.get("Origin");
   if (allowedOrigin && origin === allowedOrigin) {
     return { "Access-Control-Allow-Origin": allowedOrigin, "Vary": "Origin" };
@@ -34,15 +34,17 @@ function stripHtml(str: string): string {
 
 export const prerender = false;
 
-export const OPTIONS: APIRoute = async ({ request }) =>
-  new Response(null, {
+export const OPTIONS: APIRoute = async (context) => {
+  const env = (context.locals as any)?.runtime?.env ?? cfEnv;
+  return new Response(null, {
     status: 204,
     headers: {
-      ...corsHeaders(request),
+      ...corsHeaders(context.request, env),
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
   });
+};
 
 /**
  * Verify Cloudflare Turnstile token server-side
@@ -71,8 +73,15 @@ async function verifyTurnstile(token: string, secretKey: string, remoteIp?: stri
   }
 }
 
-export const POST: APIRoute = async ({ request }): Promise<Response> => {
-  const cors = corsHeaders(request);
+export const POST: APIRoute = async (context): Promise<Response> => {
+  const { request, locals } = context;
+  // Same fix as chat.ts: read bindings via the Astro Cloudflare adapter's
+  // standard context.locals.runtime.env path first, falling back to the
+  // cloudflare:workers module import for setups where locals.runtime isn't
+  // populated. Relying on cloudflare:workers alone is what silently broke
+  // things last time.
+  const env = (locals as any)?.runtime?.env ?? cfEnv;
+  const cors = corsHeaders(request, env);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
   let name = "", email = "", message = "", turnstileToken = "";
@@ -103,7 +112,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   turnstileToken = stripHtml(turnstileToken);
 
   // ── Turnstile verification ──
-  const turnstileSecret = (cfEnv as any).TURNSTILE_SECRET_KEY;
+  const turnstileSecret = env?.TURNSTILE_SECRET_KEY;
   if (!turnstileSecret) {
     console.error("[Turnstile] TURNSTILE_SECRET_KEY not configured.");
     return json({ ok: false, error: "Server not configured for bot protection." }, 500, cors);
@@ -126,9 +135,9 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     return json({ ok: false, errors }, 422, cors);
   }
 
-  const db = (cfEnv as any).DB;
+  const db = env?.DB;
 
-  // ── STEP 1: ALWAYS save to D1 database ──
+  // ── Save to D1 — this is the source of truth for every submission ──
   let savedToDb = false;
   if (db) {
     try {
@@ -141,40 +150,16 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     } catch (err) {
       console.error("[D1] ❌ Insert failed:", err);
     }
+  } else {
+    console.error("[D1] DB binding missing — check wrangler.toml [[d1_databases]].");
   }
 
-  // ── STEP 2: Email via Web3Forms (best-effort) ──
-  // Web3Forms' free tier requires client-side origin. We send from the
-  // Worker anyway; if it rejects us, the message is still safely in D1.
-  let emailSent = false;
-  const web3formsKey = (cfEnv as any).WEB3FORMS_KEY;
-  const ownerEmail = (cfEnv as any).TO_EMAIL;
-
-  if (web3formsKey && ownerEmail) {
-    try {
-      const emailRes = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_key: web3formsKey,
-          name,
-          email,
-          message,
-          subject: "[Portfolio Contact] Message from " + name,
-          from_name: name,
-          replyto: email,
-          to: ownerEmail,
-        }),
-      });
-      emailSent = emailRes.ok;
-      if (!emailRes.ok) {
-        console.warn("[Web3Forms] email send failed:", emailRes.status, await emailRes.text());
-      }
-    } catch (err) {
-      console.error("[Web3Forms] email fetch error:", err);
-    }
-  }
-
+  // Email delivery happens client-side (see contact.astro) — Web3Forms'
+  // free tier only accepts submissions that originate directly from the
+  // visitor's browser and rejects anything sent from a Worker/backend, so
+  // there's no point attempting it here. D1 above is the reliable record;
+  // the client-side Web3Forms call is what actually lands the email in
+  // your Gmail inbox.
   return json({
     ok: true,
     message: savedToDb
