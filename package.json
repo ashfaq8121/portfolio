@@ -2,7 +2,6 @@
   "name": "portfolio",
   "version": "1.0.0",
   "private": true,
-  
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -13,7 +12,6 @@
     "test:watch": "vitest",
     "deploy": "npm run build && wrangler deploy",
     "evals": "tsx evals/run-evals.ts"
-
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.1",
@@ -22,6 +20,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
+    "@types/node": "^26.1.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.0.0",

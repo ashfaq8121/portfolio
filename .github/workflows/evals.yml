@@ -1,13 +1,4 @@
 # .github/workflows/evals.yml
-#
-# Runs the eval suite against a live `wrangler dev` instance on
-# every pull request. Deliberately informational, not merge-blocking —
-# see DECISIONS.md for the reasoning (AI call cost/latency shouldn't gate
-# every PR the way unit tests do).
-#
-# IMPORTANT: do NOT add "evals" as a required status check in the GitHub
-# branch protection settings for `main` — that would make it merge-blocking
-# again, defeating the point of `continue-on-error` below.
 
 name: Evals
 
@@ -23,23 +14,37 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: npm ci
 
-      # Start wrangler dev locally (no --remote, since Durable Objects are removed)
+      - name: Create dist directory for assets
+        run: mkdir -p dist
+
       - name: Start wrangler dev
-        run: npx wrangler dev --port 4321 > wrangler.log 2>&1 &
+        run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Wait for dev server
-        run: npx wait-on http://localhost:4321 --timeout 60000
+        run: |
+          sleep 10
+          cat wrangler.log
+          for i in {1..30}; do
+            if curl -s http://localhost:4321 > /dev/null; then
+              echo "✅ Server is up!"
+              exit 0
+            fi
+            echo "⏳ Waiting... attempt $i"
+            sleep 2
+          done
+          echo "❌ Server failed to start. Full log:"
+          cat wrangler.log
+          exit 1
+        shell: bash
 
-      # Runs even on success, so you can always sanity-check what wrangler
-      # actually logged during startup and while serving eval traffic.
       - name: Show wrangler dev log
         if: always()
         run: cat wrangler.log || echo "(no wrangler.log found)"
