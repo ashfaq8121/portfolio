@@ -6,7 +6,7 @@ export default defineConfig({
   site: 'https://portfolio.ashfaq-portfolio.workers.dev',
   adapter: cloudflare({
     platformProxy: {
-      enabled: true,
+      enabled: false,
     }
   })
 });

@@ -16,6 +16,15 @@
  * account-level free-tier daily cap is the only ceiling left; if this page
  * ever sees real bot/scraper traffic, a rate limit (same KV pattern used
  * in the contact form) is the first thing to bring back. See DECISIONS.md.
+ *
+ * Env access: read the AI binding via the `cloudflare:workers` module's
+ * `env` export. On Astro v6 this is the correct (and only) way to reach
+ * bindings from an API route — `context.locals.runtime.env`, which older
+ * Astro/Cloudflare-adapter versions used, was removed in v6 and merely
+ * accessing it now throws. If bindings ever come back undefined here, the
+ * usual cause is `compatibility_date` in wrangler.toml being too old, or
+ * the binding itself missing/misconfigured in wrangler.toml — not this
+ * access pattern.
  */
 import type { APIRoute } from "astro";
 import { env as cfEnv } from "cloudflare:workers";
@@ -33,8 +42,9 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }): Promise<Response> => {
-  const ai = (cfEnv as any).AI;
+export const POST: APIRoute = async (context): Promise<Response> => {
+  const { request } = context;
+  const ai = (cfEnv as any)?.AI;
 
   if (!ai) {
     console.error("chat.ts: AI binding missing — add [ai] binding = \"AI\" to wrangler.toml.");
@@ -131,7 +141,9 @@ function normalizeAiStream(source: ReadableStream<Uint8Array>): ReadableStream<U
           const parsed = JSON.parse(payload);
           const text: string =
             parsed?.response ??
+            parsed?.result?.response ??
             parsed?.choices?.[0]?.delta?.content ??
+            parsed?.delta?.content ??
             parsed?.choices?.[0]?.message?.content ??
             "";
           if (text) {
