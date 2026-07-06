@@ -9,8 +9,8 @@ interface ContactResponse {
   message?: string;
 }
 
-function corsHeaders(request: Request, env: any): Record<string, string> {
-  const allowedOrigin = env?.SITE_URL as string | undefined;
+function corsHeaders(request: Request): Record<string, string> {
+  const allowedOrigin = (cfEnv as any).SITE_URL as string | undefined;
   const origin = request.headers.get("Origin");
   if (allowedOrigin && origin === allowedOrigin) {
     return { "Access-Control-Allow-Origin": allowedOrigin, "Vary": "Origin" };
@@ -34,57 +34,50 @@ function stripHtml(str: string): string {
 
 export const prerender = false;
 
-export const OPTIONS: APIRoute = async (context) => {
-  const env = (context.locals as any)?.runtime?.env ?? cfEnv;
-  return new Response(null, {
+export const OPTIONS: APIRoute = async ({ request }) =>
+  new Response(null, {
     status: 204,
     headers: {
-      ...corsHeaders(context.request, env),
+      ...corsHeaders(request),
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },
   });
-};
 
-/**
- * Verify Cloudflare Turnstile token server-side
- */
-async function verifyTurnstile(token: string, secretKey: string, remoteIp?: string): Promise<boolean> {
-  const formData = new URLSearchParams();
-  formData.append("secret", secretKey);
-  formData.append("response", token);
-  if (remoteIp) formData.append("remoteip", remoteIp);
-
-  try {
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: formData.toString(),
-    });
-
-    const data = (await res.json()) as any;
-    if (!data.success) {
-      console.warn("[Turnstile] verification failed:", data["error-codes"]);
-    }
-    return data.success === true;
-  } catch (err) {
-    console.error("[Turnstile] verify error:", err);
-    return false;
-  }
-}
-
-export const POST: APIRoute = async (context): Promise<Response> => {
-  const { request, locals } = context;
-  // Same fix as chat.ts: read bindings via the Astro Cloudflare adapter's
-  // standard context.locals.runtime.env path first, falling back to the
-  // cloudflare:workers module import for setups where locals.runtime isn't
-  // populated. Relying on cloudflare:workers alone is what silently broke
-  // things last time.
-  const env = (locals as any)?.runtime?.env ?? cfEnv;
-  const cors = corsHeaders(request, env);
+export const POST: APIRoute = async ({ request }): Promise<Response> => {
+  const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  let name = "", email = "", message = "", turnstileToken = "";
+  // ── IP rate limit (Durable Object) ──
+  const limiterBinding = (cfEnv as any).CONTACT_RATE_LIMITER;
+  if (limiterBinding) {
+    try {
+      const id = limiterBinding.idFromName(ip);
+      const stub = limiterBinding.get(id);
+      const limitRes = await stub.fetch("https://do/check");
+      const limitData = (await limitRes.json()) as {
+        allowed: boolean;
+        retryAfterSeconds?: number;
+      };
+
+      if (!limitData.allowed) {
+        const minutes = Math.ceil((limitData.retryAfterSeconds ?? 3600) / 60);
+        console.warn(`[RateLimiter] blocked IP: ${ip}`);
+        return json(
+          {
+            ok: false,
+            error: `Too many messages from this IP. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+          },
+          429,
+          cors
+        );
+      }
+    } catch (err) {
+      console.error("[RateLimiter] check error:", err);
+    }
+  }
+
+  let name = "", email = "", message = "";
 
   try {
     const ct = request.headers.get("Content-Type") ?? "";
@@ -94,13 +87,11 @@ export const POST: APIRoute = async (context): Promise<Response> => {
       name = b.name ?? "";
       email = b.email ?? "";
       message = b.message ?? "";
-      turnstileToken = b.turnstileToken ?? "";
     } else {
       const f = await request.formData();
       name = f.get("name")?.toString() ?? "";
       email = f.get("email")?.toString() ?? "";
       message = f.get("message")?.toString() ?? "";
-      turnstileToken = f.get("turnstileToken")?.toString() ?? "";
     }
   } catch {
     return json({ ok: false, error: "Invalid request body." }, 400, cors);
@@ -109,25 +100,6 @@ export const POST: APIRoute = async (context): Promise<Response> => {
   name = stripHtml(name);
   email = stripHtml(email).toLowerCase();
   message = stripHtml(message);
-  turnstileToken = stripHtml(turnstileToken);
-
-  // ── Turnstile verification ──
-  const turnstileSecret = env?.TURNSTILE_SECRET_KEY;
-  if (!turnstileSecret) {
-    console.error("[Turnstile] TURNSTILE_SECRET_KEY not configured.");
-    return json({ ok: false, error: "Server not configured for bot protection." }, 500, cors);
-  }
-
-  if (!turnstileToken) {
-    return json({ ok: false, error: "Please complete the bot verification challenge." }, 400, cors);
-  }
-
-  const isHuman = await verifyTurnstile(turnstileToken, turnstileSecret, ip);
-
-  if (!isHuman) {
-    console.warn(`[Turnstile] Failed verification for IP: ${ip}`);
-    return json({ ok: false, error: "Bot verification failed. Please try again." }, 403, cors);
-  }
 
   // ── Validation ── uses validate.ts
   const errors = validateContactForm({ name, email, message });
@@ -135,9 +107,9 @@ export const POST: APIRoute = async (context): Promise<Response> => {
     return json({ ok: false, errors }, 422, cors);
   }
 
-  const db = env?.DB;
+  const db = (cfEnv as any).DB;
 
-  // ── Save to D1 — this is the source of truth for every submission ──
+  // ── STEP 1: ALWAYS save to D1 database ───────────────────────────────
   let savedToDb = false;
   if (db) {
     try {
@@ -148,22 +120,16 @@ export const POST: APIRoute = async (context): Promise<Response> => {
       savedToDb = true;
       console.log("[D1] ✅ Submission saved successfully");
     } catch (err) {
-      console.error("[D1] ❌ Insert failed:", err);
+      console.error("[D1] ❌ Save error:", err);
     }
-  } else {
-    console.error("[D1] DB binding missing — check wrangler.toml [[d1_databases]].");
   }
 
-  // Email delivery happens client-side (see contact.astro) — Web3Forms'
-  // free tier only accepts submissions that originate directly from the
-  // visitor's browser and rejects anything sent from a Worker/backend, so
-  // there's no point attempting it here. D1 above is the reliable record;
-  // the client-side Web3Forms call is what actually lands the email in
-  // your Gmail inbox.
-  return json({
-    ok: true,
-    message: savedToDb
-      ? "Message saved successfully. I'll get back to you soon!"
-      : "Message received! I'll get back to you soon.",
+  // ── STEP 2: ALWAYS return success to user ────────────────────────────
+  // Web3Forms email is sent client-side from contact.astro after this
+  // endpoint responds. D1 above is the durable record regardless of
+  // whether that client-side email send succeeds.
+  return json({ 
+    ok: true, 
+    message: "Message sent! I will get back to you soon." 
   }, 200, cors);
 };

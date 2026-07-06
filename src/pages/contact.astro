@@ -7,12 +7,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 //   local (.env)              -> Cloudflare's always-pass test key
 //   production (Pages build)  -> real sitekey, domain-matched
 const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
-
-// Per-request nonce set by src/middleware.ts, allow-listed in that same
-// request's Content-Security-Policy header. Passed to this page's own
-// <script> tags below so the browser will actually execute them instead
-// of blocking them as unauthorized inline scripts.
-const nonce = Astro.locals.cspNonce as string;
 ---
 
 <BaseLayout
@@ -142,18 +136,6 @@ const nonce = Astro.locals.cspNonce as string;
             <span class="form-error" id="message-error" role="alert" aria-live="polite"></span>
           </div>
 
-          <!-- Cloudflare Turnstile Widget -->
-          <div class="form-group">
-       <div
-            class="cf-turnstile"
-            data-sitekey={TURNSTILE_SITE_KEY}
-            data-theme="dark"
-            data-callback="turnstileCallback"
-         ></div>
-            <input type="hidden" name="cf-turnstile-response" id="cf-turnstile-response" />
-            <span class="form-error" id="turnstile-error" role="alert" aria-live="polite"></span>
-          </div>
-
           <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
             <span class="btn-text">Send message</span>
             <span class="btn-spinner" aria-hidden="true" hidden>
@@ -256,22 +238,10 @@ const nonce = Astro.locals.cspNonce as string;
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .cf-turnstile {
-    min-height: 65px;
-  }
-
   [hidden] { display: none !important; }
 </style>
 
-<!-- Cloudflare Turnstile Script -->
-<script nonce={nonce} src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-<script nonce={nonce}>
-  // Global callback for Turnstile
-  window.turnstileCallback = function(token) {
-    document.getElementById('cf-turnstile-response').value = token;
-  };
-
+<script>
   const form = document.getElementById("contact-form");
   const submitBtn = document.getElementById("submit-btn");
   const btnText = submitBtn?.querySelector(".btn-text");
@@ -288,7 +258,7 @@ const nonce = Astro.locals.cspNonce as string;
   }
 
   function clearErrors() {
-    ["name", "email", "message", "turnstile"].forEach((id) => setFieldError(id, ""));
+    ["name", "email", "message"].forEach((id) => setFieldError(id, ""));
   }
 
   function setLoading(on) {
@@ -348,21 +318,13 @@ const nonce = Astro.locals.cspNonce as string;
       return;
     }
 
-    // Get Turnstile token from hidden input
-    const turnstileResponse = document.getElementById('cf-turnstile-response')?.value;
-
-    if (!turnstileResponse) {
-      setFieldError("turnstile", "Please complete the bot verification challenge.");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message, turnstileToken: turnstileResponse }),
+        body: JSON.stringify({ name, email, message }),
         credentials: "same-origin",
       });
 
@@ -370,8 +332,6 @@ const nonce = Astro.locals.cspNonce as string;
 
       if (res.ok && body.ok) {
         form.reset();
-        document.getElementById('cf-turnstile-response').value = '';
-        if (window.turnstile) window.turnstile.reset();
         if (successEl) successEl.hidden = false;
         successEl?.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -406,14 +366,10 @@ const nonce = Astro.locals.cspNonce as string;
         const firstFieldError = body.errors ? Object.values(body.errors)[0] : null;
         if (errorMsg) errorMsg.textContent = body.error ?? firstFieldError ?? "Something went wrong. Please try again.";
         if (errorEl) errorEl.hidden = false;
-        document.getElementById('cf-turnstile-response').value = '';
-        if (window.turnstile) window.turnstile.reset();
       }
     } catch {
       if (errorMsg) errorMsg.textContent = "Could not reach the server. Please check your connection.";
       if (errorEl) errorEl.hidden = false;
-      document.getElementById('cf-turnstile-response').value = '';
-      if (window.turnstile) window.turnstile.reset();
     } finally {
       setLoading(false);
     }
