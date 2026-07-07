@@ -11,6 +11,7 @@ directory = "./dist"
 [vars]
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
+PUBLIC_WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
