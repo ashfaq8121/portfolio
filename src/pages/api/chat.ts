@@ -19,7 +19,7 @@
  */
 import type { APIRoute } from "astro";
 import { env as cfEnv } from "cloudflare:workers";
-import { buildSystemPrompt } from "../../lib/chat-system-prompt";
+import { buildSystemPrompt, looksLikePromptLeak, NOT_FOUND_MESSAGE } from "../../lib/chat-system-prompt";
 
 export const prerender = false;
 
@@ -77,6 +77,17 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
       //   choices[0].message.content, same as the OpenAI chat-completion format
       // Check both so swapping MODEL later doesn't silently break this again.
       const answer = result?.choices?.[0]?.message?.content ?? result?.response ?? "";
+
+      // Output-filter backstop: even if a prompt-injection attempt somehow
+      // got the model to start reciting its instructions, catch it here in
+      // code before it ever reaches the visitor — see looksLikePromptLeak's
+      // own comment in chat-system-prompt.ts for why this exists alongside
+      // (not instead of) the prompt rules.
+      if (looksLikePromptLeak(answer)) {
+        console.warn("chat.ts: blocked a response that looked like a prompt leak");
+        return json({ ok: true, answer: NOT_FOUND_MESSAGE });
+      }
+
       return json({ ok: true, answer });
     } catch (err) {
       console.error("Workers AI error:", err);
@@ -114,9 +125,13 @@ function normalizeAiStream(source: ReadableStream<Uint8Array>): ReadableStream<U
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
+  let accumulatedAnswer = ""; // full answer-so-far, for leak detection
+  let blocked = false; // once true, stop emitting further real tokens
 
   const transform = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
+      if (blocked) return; // already cut off this stream, ignore remaining chunks
+
       buffer += decoder.decode(chunk, { stream: true });
       const lines = buffer.split("\n");
       buffer = lines.pop() ?? "";
@@ -139,6 +154,23 @@ function normalizeAiStream(source: ReadableStream<Uint8Array>): ReadableStream<U
             parsed?.choices?.[0]?.message?.content ??
             "";
           if (text) {
+            accumulatedAnswer += text;
+
+            // Output-filter backstop, streaming version: check the
+            // running total on every chunk. If a leak is detected
+            // mid-stream, stop forwarding real tokens and send the safe
+            // fallback instead — the visitor sees a clean cutover, not
+            // half of a leaked prompt.
+            if (looksLikePromptLeak(accumulatedAnswer)) {
+              console.warn("chat.ts: blocked a streaming response that looked like a prompt leak");
+              blocked = true;
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ response: NOT_FOUND_MESSAGE })}\n\n`)
+              );
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              return;
+            }
+
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: text })}\n\n`));
           }
         } catch {
@@ -147,7 +179,7 @@ function normalizeAiStream(source: ReadableStream<Uint8Array>): ReadableStream<U
       }
     },
     flush(controller) {
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      if (!blocked) controller.enqueue(encoder.encode("data: [DONE]\n\n"));
     },
   });
 
