@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { env as cfEnv } from "cloudflare:workers";
 
 // Public (non-secret) site key, resolved at build time. Not a secret —
 // it's meant to be visible in the page HTML. Value differs by
@@ -7,6 +8,19 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 //   local (.env)              -> Cloudflare's always-pass test key
 //   production (Pages build)  -> real sitekey, domain-matched
 const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+
+// Was previously read purely from import.meta.env.PUBLIC_WEB3FORMS_KEY,
+// which depends on the GitHub Actions build step correctly forwarding the
+// secret at the exact moment `astro build` runs — that dependency chain
+// broke silently in production (key ended up undefined in the shipped
+// bundle, the client-side Web3Forms fetch never fired, no error anywhere).
+// Reading it here instead, server-side via the Cloudflare runtime binding
+// (same reliable mechanism chat.ts/contact.ts already use successfully),
+// removes that fragile build-time dependency entirely. Falls back to the
+// old import.meta.env value for local `astro dev`, where cfEnv may not be
+// wired up depending on dev mode.
+const web3formsKey =
+  (cfEnv as any).PUBLIC_WEB3FORMS_KEY ?? import.meta.env.PUBLIC_WEB3FORMS_KEY ?? "";
 ---
 
 <BaseLayout
@@ -79,6 +93,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
           class="contact-form"
           novalidate
           aria-label="Contact form"
+          data-web3forms-key={web3formsKey}
         >
           <!-- Name -->
           <div class="form-group">
@@ -343,7 +358,11 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
         // verified Turnstile + validated + saved to D1 above; this
         // second, separate request is purely for email delivery and
         // doesn't block the success message the user already saw.
-        const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY;
+        // Read from the data attribute set server-side above (via the
+        // Cloudflare runtime binding) instead of import.meta.env directly —
+        // this avoids depending on the key being correctly forwarded through
+        // the GitHub Actions build step at the exact moment `astro build` runs.
+        const web3formsKey = form.dataset.web3formsKey;
         if (web3formsKey) {
           fetch("https://api.web3forms.com/submit", {
             method: "POST",
