@@ -11,7 +11,14 @@ directory = "./dist"
 [vars]
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
-# REMOVE THIS: PUBLIC_WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d
+# Restored here deliberately (was previously flagged for removal when the
+# key was read client-side via import.meta.env, which needed it injected
+# at astro-build time through GitHub Actions — that path broke silently
+# in production). Now read server-side in contact.astro via the Cloudflare
+# runtime binding, so it belongs in [vars] like any other Worker runtime
+# value: wrangler deploy ships this file's contents directly, no separate
+# GitHub secret/build-step timing dependency involved.
+PUBLIC_WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
