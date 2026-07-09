@@ -33,7 +33,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://api.web3forms.com https://static.cloudflareinsights.com",
+  "connect-src 'self' https://api.web3forms.com https://static.cloudflareinsights.com https://cloudflareinsights.com",
   "frame-src https://challenges.cloudflare.com",
   "object-src 'none'",
   "base-uri 'self'",
