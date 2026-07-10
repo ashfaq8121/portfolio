@@ -274,7 +274,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 </style>
 
-<script>
+<script nonce={Astro.locals.nonce}>
   // ── Category tree ──────────────────────────────────────────────────────
   // Edit labels/questions here to match resume-context.ts if your resume
   // content ever changes. Each leaf's "question" is sent to /api/chat
