@@ -21,4 +21,9 @@ declare namespace App {
 // Add this to your existing src/env.d.ts (merge with whatever's already
 // there — don't just overwrite the file if it has other content).
 // This tells TypeScript that context.locals.nonce / Astro.locals.nonce
+<<<<<<< HEAD
 // is a real, typed property, set by middleware.ts on every request.
+=======
+// is a real, typed property, set by middleware.ts on every request.
+
+>>>>>>> origin/main
