@@ -16,7 +16,8 @@ export const prerender = false;
 // environment via PUBLIC_TURNSTILE_SITE_KEY:
 //   local (.env)              -> Cloudflare's always-pass test key
 //   production (Pages build)  -> real sitekey, domain-matched
-const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY =
+  (cfEnv as any).PUBLIC_TURNSTILE_SITE_KEY ?? import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 // Was previously read purely from import.meta.env.PUBLIC_WEB3FORMS_KEY,
 // which depends on the GitHub Actions build step correctly forwarding the
@@ -160,6 +161,12 @@ const web3formsKey =
             <span class="form-error" id="message-error" role="alert" aria-live="polite"></span>
           </div>
 
+          <!-- Turnstile widget - Cloudflare injects a hidden
+               input[name="cf-turnstile-response"] inside this div once the
+               visitor completes (or auto-passes) the challenge. The submit
+               script below reads that value and sends it to the Worker. -->
+          <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-theme="auto"></div>
+
           <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
             <span class="btn-text">Send message</span>
             <span class="btn-spinner" aria-hidden="true" hidden>
@@ -265,6 +272,11 @@ const web3formsKey =
   [hidden] { display: none !important; }
 </style>
 
+<!-- Turnstile's own script - CSP already allows challenges.cloudflare.com
+     in both script-src and frame-src (see middleware.ts), so this loads
+     and the widget's internal iframe both work under the existing policy. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce={Astro.locals.nonce}></script>
+
 <script nonce={Astro.locals.nonce}>
   const form = document.getElementById("contact-form");
   const submitBtn = document.getElementById("submit-btn");
@@ -342,13 +354,24 @@ const web3formsKey =
       return;
     }
 
+    // Turnstile's widget auto-injects this hidden input once the
+    // challenge is complete. If it's missing/empty, the Worker will
+    // reject the request server-side anyway - this is just a fast
+    // client-side check to avoid a pointless round trip.
+    const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value ?? "";
+    if (!turnstileToken) {
+      if (errorMsg) errorMsg.textContent = "Please complete the verification challenge.";
+      if (errorEl) errorEl.hidden = false;
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message, turnstileToken }),
         credentials: "same-origin",
       });
 
@@ -356,6 +379,9 @@ const web3formsKey =
 
       if (res.ok && body.ok) {
         form.reset();
+        // Turnstile tokens are single-use - reset the widget so the
+        // visitor gets a fresh one if they submit again.
+        if (window.turnstile) window.turnstile.reset();
         if (successEl) successEl.hidden = false;
         successEl?.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -391,11 +417,13 @@ const web3formsKey =
           });
         }
       } else {
+        if (window.turnstile) window.turnstile.reset();
         const firstFieldError = body.errors ? Object.values(body.errors)[0] : null;
         if (errorMsg) errorMsg.textContent = body.error ?? firstFieldError ?? "Something went wrong. Please try again.";
         if (errorEl) errorEl.hidden = false;
       }
     } catch {
+      if (window.turnstile) window.turnstile.reset();
       if (errorMsg) errorMsg.textContent = "Could not reach the server. Please check your connection.";
       if (errorEl) errorEl.hidden = false;
     } finally {
