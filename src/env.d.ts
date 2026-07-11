@@ -12,13 +12,5 @@ interface Env {
 }
 
 declare namespace App {
-  
-  interface Locals {
-    nonce: string;
-  }
   interface Locals extends Runtime {}
 }
-// Add this to your existing src/env.d.ts (merge with whatever's already
-// there — don't just overwrite the file if it has other content).
-// This tells TypeScript that context.locals.nonce / Astro.locals.nonce
-// is a real, typed property, set by middleware.ts on every request.
