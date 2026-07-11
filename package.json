@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/postbuild-durable-object.mjs",
     "preview": "wrangler dev",
     "lint": "eslint \"worker/src/**/*.ts\" --max-warnings 0",
     "typecheck": "tsc --noEmit",

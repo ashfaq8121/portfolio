@@ -29,12 +29,24 @@ binding = "DB"
 database_name = "portfolio-db"
 database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
 
+# ── Durable Object: contact form IP rate limiter ──
+# 3 messages per IP per rolling 1-hour window (see
+# src/durable-objects/ContactRateLimiter.mjs for the counting logic).
+# NOTE: astro build strips this section out of the generated
+# dist/server/wrangler.json - scripts/postbuild-durable-object.mjs adds
+# it back in after every build. Keep this block here anyway as the
+# source of truth / documentation of intent.
+[[durable_objects.bindings]]
+name = "CONTACT_RATE_LIMITER"
+class_name = "ContactRateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ContactRateLimiter"]
+
 [observability]
 enabled = true
 
 # NOTE: TURNSTILE_SECRET_KEY is NOT set here - it's a secret, set via:
 #   npx wrangler secret put TURNSTILE_SECRET_KEY
 # Never put secret keys in wrangler.toml (it's committed to git).
-#
-# NOTE: Durable Object rate limiter intentionally left out for now —
-# planned as a separate follow-up.

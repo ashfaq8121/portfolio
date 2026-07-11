@@ -37,11 +37,6 @@ function stripHtml(str: string): string {
 // bot could fake or replay. This server-side call, using the SECRET key
 // that never reaches the browser, is what actually proves a human passed
 // the challenge for THIS specific request.
-//
-// TEMP DEBUG: logging the full siteverify response (including
-// error-codes) so we can see exactly why verification is failing in
-// production, even though the widget itself shows "Success!" client-side.
-// Remove the console.log of the raw response once this is confirmed working.
 async function verifyTurnstile(token: string, secretKey: string, ip: string): Promise<boolean> {
   if (!token) {
     console.warn("[Turnstile] no token received from client");
@@ -87,9 +82,42 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  // NOTE: IP rate limiting intentionally not included here yet — planned
-  // as a separate follow-up (Durable Object). Turnstile below is the only
-  // bot/abuse defense on this endpoint for now.
+  // ── IP rate limit (Durable Object) ── checked FIRST, before we do any
+  // other work — no point validating or calling Turnstile for a request
+  // we're going to reject anyway. One DO instance per IP (idFromName(ip))
+  // tracks that IP's own hit count in isolation from every other visitor.
+  // 3 messages per IP per rolling 1-hour window — see
+  // src/durable-objects/ContactRateLimiter.ts for the counting logic.
+  const limiterBinding = (cfEnv as any).CONTACT_RATE_LIMITER;
+  if (limiterBinding) {
+    try {
+      const id = limiterBinding.idFromName(ip);
+      const stub = limiterBinding.get(id);
+      const limitRes = await stub.fetch("https://do/check");
+      const limitData = (await limitRes.json()) as {
+        allowed: boolean;
+        retryAfterSeconds?: number;
+      };
+
+      if (!limitData.allowed) {
+        const minutes = Math.ceil((limitData.retryAfterSeconds ?? 3600) / 60);
+        console.warn(`[RateLimiter] blocked IP: ${ip}`);
+        return json(
+          {
+            ok: false,
+            error: `Too many messages were sent. Wait for ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
+          },
+          429,
+          cors
+        );
+      }
+    } catch (err) {
+      // Fail OPEN, not closed: if the Durable Object itself errors, we
+      // don't want a rate-limiter bug to take down the whole contact
+      // form. Turnstile below is still a second line of defense.
+      console.error("[RateLimiter] check error:", err);
+    }
+  }
 
   let name = "", email = "", message = "", turnstileToken = "";
 
@@ -113,7 +141,7 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
     return json({ ok: false, error: "Invalid request body." }, 400, cors);
   }
 
-  // ── Turnstile bot check ── must pass before we touch validation or D1.
+  // ── Turnstile bot check ──
   const turnstileSecret = (cfEnv as any).TURNSTILE_SECRET_KEY as string | undefined;
   const humanVerified = await verifyTurnstile(turnstileToken, turnstileSecret ?? "", ip);
   if (!humanVerified) {
