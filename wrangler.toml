@@ -11,13 +11,6 @@ directory = "./dist"
 [vars]
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
-# Restored here deliberately (was previously flagged for removal when the
-# key was read client-side via import.meta.env, which needed it injected
-# at astro-build time through GitHub Actions — that path broke silently
-# in production). Now read server-side in contact.astro via the Cloudflare
-# runtime binding, so it belongs in [vars] like any other Worker runtime
-# value: wrangler deploy ships this file's contents directly, no separate
-# GitHub secret/build-step timing dependency involved.
 PUBLIC_WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c"
 
 [[kv_namespaces]]
@@ -28,32 +21,11 @@ preview_id = "75f6221e15ef407eb6460f2c9878b431"
 [[kv_namespaces]]
 binding = "SESSION"
 id = "3fac65c2f32f4818acaae9527df401a2"
-# This is the real "portfolio-session" namespace from the Cloudflare
-# dashboard (Workers KV). The id was missing entirely before, which is
-# invalid config and crashed the ENTIRE Worker on boot — every route, not
-# just /api/chat. That's why all 21 evals failed identically with "Could
-# not get an answer": nothing was running to answer anything.
-#
-# No preview_id set — Wrangler will auto-create a `_preview` copy of this
-# namespace the first time you run `wrangler dev` (needs network access to
-# Cloudflare). If you'd rather pin it explicitly, run:
-#   npx wrangler kv namespace create SESSION --preview
-# and paste the id it prints back as preview_id here.
 
 [[d1_databases]]
 binding = "DB"
 database_name = "portfolio-db"
 database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
-
-# Durable Objects removed for now — add later
-# [[durable_objects.bindings]]
-# name = "CONTACT_RATE_LIMITER"
-# class_name = "RateLimiter"
-# script_name = "portfolio-rate-limiter"
-
-# [[migrations]]
-# tag = "v1"
-# new_sqlite_classes = ["RateLimiter"]
 
 [observability]
 enabled = true

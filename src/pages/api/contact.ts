@@ -48,34 +48,9 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  // ── IP rate limit (Durable Object) ──
-  const limiterBinding = (cfEnv as any).CONTACT_RATE_LIMITER;
-  if (limiterBinding) {
-    try {
-      const id = limiterBinding.idFromName(ip);
-      const stub = limiterBinding.get(id);
-      const limitRes = await stub.fetch("https://do/check");
-      const limitData = (await limitRes.json()) as {
-        allowed: boolean;
-        retryAfterSeconds?: number;
-      };
-
-      if (!limitData.allowed) {
-        const minutes = Math.ceil((limitData.retryAfterSeconds ?? 3600) / 60);
-        console.warn(`[RateLimiter] blocked IP: ${ip}`);
-        return json(
-          {
-            ok: false,
-            error: `Too many messages from this IP. Try again in ${minutes} minute${minutes !== 1 ? "s" : ""}.`,
-          },
-          429,
-          cors
-        );
-      }
-    } catch (err) {
-      console.error("[RateLimiter] check error:", err);
-    }
-  }
+  // NOTE: IP rate limiting removed for now (was a non-functional Durable
+  // Object reference — CONTACT_RATE_LIMITER isn't bound in wrangler.toml).
+  // Plan: add proper rate limiting here later (Durable Object or KV).
 
   let name = "", email = "", message = "";
 
