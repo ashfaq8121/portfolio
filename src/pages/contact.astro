@@ -2,6 +2,15 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { env as cfEnv } from "cloudflare:workers";
 
+// Force this page to render server-side on every request (instead of
+// being statically prerendered at build time). Without this, cfEnv below
+// is not a live Worker binding at the time this frontmatter runs — it
+// resolves to undefined during the static build, which silently produced
+// an empty Web3Forms key in production. This is the same reason every
+// API route in this project (contact.ts, login.ts, etc.) already sets
+// prerender = false.
+export const prerender = false;
+
 // Public (non-secret) site key, resolved at build time. Not a secret —
 // it's meant to be visible in the page HTML. Value differs by
 // environment via PUBLIC_TURNSTILE_SITE_KEY:
@@ -282,7 +291,7 @@ const web3formsKey =
     if (btnSpinner) btnSpinner.hidden = !on;
   }
 
-  // ── Client-side validation ───────────────────────────────────────────
+  // ── Client-side validation ──────────────────────────────────
   function validateClientSide(data) {
     const errors = {};
 
@@ -314,7 +323,7 @@ const web3formsKey =
     return errors;
   }
 
-  // ── Form Submit ────────────────────────────────────────────────────────
+  // ── Form Submit ──────────────────────────────────────────────
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors();
