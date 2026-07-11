@@ -12,6 +12,8 @@ directory = "./dist"
 OWNER_NAME = "Ashfaq ur Rahman"
 TO_EMAIL = "urrahmanmohammadashfaq@gmail.com"
 PUBLIC_WEB3FORMS_KEY = "669eaee5-ea7c-4270-840a-e1a26ed3d88c"
+# Site key is not secret - it's meant to be visible in the page HTML.
+PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAADzrvl5DU-tVCjK7"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
@@ -29,3 +31,10 @@ database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
 
 [observability]
 enabled = true
+
+# NOTE: TURNSTILE_SECRET_KEY is NOT set here - it's a secret, set via:
+#   npx wrangler secret put TURNSTILE_SECRET_KEY
+# Never put secret keys in wrangler.toml (it's committed to git).
+#
+# NOTE: Durable Object rate limiter intentionally left out for now —
+# planned as a separate follow-up.

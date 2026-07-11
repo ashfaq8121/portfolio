@@ -32,6 +32,45 @@ function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "").trim();
 }
 
+// Verifies a Turnstile token with Cloudflare's siteverify endpoint. The
+// token alone (from the client) proves nothing - it's just a string a
+// bot could fake or replay. This server-side call, using the SECRET key
+// that never reaches the browser, is what actually proves a human passed
+// the challenge for THIS specific request.
+//
+// TEMP DEBUG: logging the full siteverify response (including
+// error-codes) so we can see exactly why verification is failing in
+// production, even though the widget itself shows "Success!" client-side.
+// Remove the console.log of the raw response once this is confirmed working.
+async function verifyTurnstile(token: string, secretKey: string, ip: string): Promise<boolean> {
+  if (!token) {
+    console.warn("[Turnstile] no token received from client");
+    return false;
+  }
+  if (!secretKey) {
+    console.warn("[Turnstile] TURNSTILE_SECRET_KEY is not set in this environment");
+    return false;
+  }
+
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: secretKey, response: token, remoteip: ip }),
+    });
+    const data = (await res.json()) as { success: boolean; "error-codes"?: string[] };
+
+    if (!data.success) {
+      console.warn("[Turnstile] verification failed:", JSON.stringify(data));
+    }
+
+    return data.success === true;
+  } catch (err) {
+    console.error("[Turnstile] verify request error:", err);
+    return false;
+  }
+}
+
 export const prerender = false;
 
 export const OPTIONS: APIRoute = async ({ request }) =>
@@ -48,11 +87,11 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
   const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
 
-  // NOTE: IP rate limiting removed for now (was a non-functional Durable
-  // Object reference — CONTACT_RATE_LIMITER isn't bound in wrangler.toml).
-  // Plan: add proper rate limiting here later (Durable Object or KV).
+  // NOTE: IP rate limiting intentionally not included here yet — planned
+  // as a separate follow-up (Durable Object). Turnstile below is the only
+  // bot/abuse defense on this endpoint for now.
 
-  let name = "", email = "", message = "";
+  let name = "", email = "", message = "", turnstileToken = "";
 
   try {
     const ct = request.headers.get("Content-Type") ?? "";
@@ -62,14 +101,23 @@ export const POST: APIRoute = async ({ request }): Promise<Response> => {
       name = b.name ?? "";
       email = b.email ?? "";
       message = b.message ?? "";
+      turnstileToken = b.turnstileToken ?? "";
     } else {
       const f = await request.formData();
       name = f.get("name")?.toString() ?? "";
       email = f.get("email")?.toString() ?? "";
       message = f.get("message")?.toString() ?? "";
+      turnstileToken = f.get("cf-turnstile-response")?.toString() ?? "";
     }
   } catch {
     return json({ ok: false, error: "Invalid request body." }, 400, cors);
+  }
+
+  // ── Turnstile bot check ── must pass before we touch validation or D1.
+  const turnstileSecret = (cfEnv as any).TURNSTILE_SECRET_KEY as string | undefined;
+  const humanVerified = await verifyTurnstile(turnstileToken, turnstileSecret ?? "", ip);
+  if (!humanVerified) {
+    return json({ ok: false, error: "Bot verification failed. Please try again." }, 403, cors);
   }
 
   name = stripHtml(name);
