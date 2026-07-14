@@ -56,14 +56,14 @@ const fullTitle =
       type={ogType}
     />
 
-    <script is:inline>
+    <script is:inline nonce={Astro.locals.nonce}>
       (function () {
-        const stored = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const theme = stored || (prefersDark ? "dark" : "light");
-        document.documentElement.setAttribute("data-theme", theme);
-      })();
-    </script>
+      const stored = localStorage.getItem("theme");
+      prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      theme = stored || (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+       })();
+     </script>
   </head>
 
   <body>

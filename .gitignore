@@ -8,3 +8,10 @@ dist/
 !.env.example
 *.local
 * text=auto
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

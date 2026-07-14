@@ -31,6 +31,13 @@ database_id = "b2a7c764-7910-4ff4-986e-132b5d8d34b9"
 
 [observability]
 enabled = true
+[[migrations]]
+tag = "v1"
+new_classes = ["ContactRateLimiter"]
+
+[[migrations]]
+tag = "v2"
+deleted_classes = ["ContactRateLimiter"]
 
 # NOTE: TURNSTILE_SECRET_KEY is NOT set here - it's a secret, set via:
 #   npx wrangler secret put TURNSTILE_SECRET_KEY
