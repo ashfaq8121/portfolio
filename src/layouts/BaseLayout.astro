@@ -6,6 +6,8 @@ import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import SkipLink from "../components/SkipLink.astro";
 import OgMeta from "../components/OgMeta.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";  
+
 
 interface Props {
   title: string;
@@ -69,6 +71,7 @@ const fullTitle =
   <body>
     <SkipLink />
     <Nav />
+    <ThemeToggle />    
     <main id="main-content" tabindex="-1">
       <slot />
     </main>
