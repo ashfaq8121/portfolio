@@ -344,8 +344,7 @@ const nonce = Astro.locals.nonce;
     .td-email { min-width: 220px; }
     .td-email a { color: #facc15; text-decoration: none; font-weight: 500; word-break: break-all; overflow-wrap: break-word; }
     .td-email a:hover { text-decoration: underline; }
-    .td-message { max-width: 320px; min-width: 260px; color: var(--text-dim); word-break: break-word; }
-    .td-date { white-space: nowrap; color: var(--text-muted); font-size: 0.8rem; min-width: 170px; }
+    .td-message { max-width: 320px; min-width: 260px; color: var(--text-dim); word-break: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }    .td-date { white-space: nowrap; color: var(--text-muted); font-size: 0.8rem; min-width: 170px; }
 
     .btn-delete {
       display: inline-flex;
