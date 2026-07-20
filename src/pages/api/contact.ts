@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { env as cfEnv } from "cloudflare:workers";
 import { validateContactForm } from "../../lib/validate";
+import { ContactRateLimiter } from "../../lib/ContactRateLimiter";
+export { ContactRateLimiter };
 
 interface ContactResponse {
   ok: boolean;
@@ -8,6 +10,8 @@ interface ContactResponse {
   errors?: Record<string, string>;
   message?: string;
 }
+
+const ONE_HOUR_MS = 60 * 60 * 1000;
 
 function corsHeaders(request: Request): Record<string, string> {
   const allowedOrigin = (cfEnv as any).SITE_URL as string | undefined;
@@ -86,6 +90,33 @@ export const OPTIONS: APIRoute = async ({ request }) =>
 export const POST: APIRoute = async ({ request }): Promise<Response> => {
   const cors = corsHeaders(request);
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+
+  // ── Rate limit (Durable Object) ── one instance per IP, 3 msgs/hour.
+  // Checked before Turnstile on purpose: Turnstile's siteverify call is
+  // an outbound network request with real latency/cost, so a client
+  // that's already over the limit gets rejected immediately instead of
+  // paying for that round trip first.
+  const rateLimiterBinding = (cfEnv as any).RATE_LIMITER;
+  if (rateLimiterBinding) {
+    const doId = rateLimiterBinding.idFromName(ip);
+    const doStub = rateLimiterBinding.get(doId);
+    const rlRes = await doStub.fetch("https://rate-limiter/check");
+    const rl = (await rlRes.json()) as { allowed: boolean; retryAfterMs?: number };
+
+    if (!rl.allowed) {
+      const minutes = Math.max(1, Math.ceil((rl.retryAfterMs ?? ONE_HOUR_MS) / 60000));
+      return json(
+        {
+          ok: false,
+          error: `Too many messages sent. Please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
+        },
+        429,
+        cors
+      );
+    }
+  } else {
+    console.warn("[RateLimiter] RATE_LIMITER binding not found — rate limiting is disabled this request.");
+  }
 
   // NOTE: IP rate limiting intentionally not included here yet — planned
   // as a separate follow-up (Durable Object). Turnstile below is the only

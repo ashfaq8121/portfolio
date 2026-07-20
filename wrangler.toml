@@ -5,6 +5,10 @@ compatibility_date = "2026-06-08"
 [ai]
 binding = "AI"
 
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "ContactRateLimiter"
+
 [assets]
 directory = "./dist"
 
@@ -39,9 +43,16 @@ new_classes = ["ContactRateLimiter"]
 tag = "v2"
 deleted_classes = ["ContactRateLimiter"]
 
+[[migrations]]
+tag = "v3"
+new_classes = ["ContactRateLimiter"]
+
 # NOTE: TURNSTILE_SECRET_KEY is NOT set here - it's a secret, set via:
 #   npx wrangler secret put TURNSTILE_SECRET_KEY
 # Never put secret keys in wrangler.toml (it's committed to git).
 #
-# NOTE: Durable Object rate limiter intentionally left out for now —
-# planned as a separate follow-up.
+# NOTE: ContactRateLimiter (Durable Object, see src/lib/ContactRateLimiter.ts)
+# enforces 3 contact-form submissions per IP per rolling hour. See migration
+# v3 above — v1 originally created this class, v2 deleted it during an
+# earlier attempt, so re-adding it required a NEW tag (v3) rather than
+# reusing v1; Cloudflare's migration system is append-only.
