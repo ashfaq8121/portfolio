@@ -42,10 +42,18 @@ export default defineConfig({
     // finish attaching listeners. Not yet root-caused. See TESTING.md.
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run the real built Worker before starting the tests — NOT `astro dev`.
+   * `astro dev` uses Vite's dev server, which does not correctly load
+   * Durable Object classes (see DECISIONS.md / the ContactRateLimiter
+   * investigation) — bindings show as present but calling them throws
+   * "no such actor class" at runtime. `npm run build` produces the real
+   * dist/server/entry.mjs (patched by scripts/fix-durable-objects.mjs to
+   * correctly export the DO class), and `wrangler dev` serves that exact
+   * build through the real Workers runtime, same as production. */
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npx wrangler dev --port 4321',
     url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
+    timeout: 180 * 1000, // build + wrangler cold start is slower than plain `astro dev`
   },
 });
