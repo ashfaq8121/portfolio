@@ -22,6 +22,7 @@
  * updated to include nonce={Astro.locals.nonce} or it will stop running
  * under this policy. See the two files listed below.
  */
+
 import { defineMiddleware } from "astro:middleware";
 
 export const onRequest = defineMiddleware(async (context, next) => {

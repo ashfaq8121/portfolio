@@ -19,8 +19,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create dist directory for assets
-        run: mkdir -p dist
+      # Real build — NOT a bare `mkdir -p dist`. Without a real build,
+      # wrangler dev has no actual entrypoint to serve, so it falls back
+      # to a blank placeholder worker that (obviously) doesn't export
+      # ContactRateLimiter, causing:
+      #   "Your Worker depends on the following Durable Objects, which
+      #    are not exported in your entrypoint file: ContactRateLimiter"
+      # `npm run build` also runs scripts/fix-durable-objects.mjs, which
+      # patches the built entry so the DO class is actually exported —
+      # same as the real production build and the Playwright test setup.
+      - name: Build app
+        run: npm run build
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Clear local DO SQLite state before starting wrangler dev — the
+      # build step's internal Astro/Vite Miniflare sync and this wrangler
+      # dev command can be backed by different bundled workerd versions,
+      # and both default to writing local DO state into the same
+      # .wrangler/state folder. Starting wrangler dev with stale state
+      # from a different workerd version causes a hard crash (SQLite
+      # schema mismatch) instead of a clean startup. See playwright.config.ts
+      # for the same fix applied to the E2E test server.
+      - name: Clear stale local Durable Object state
+        run: rm -rf .wrangler/state
 
       - name: Start wrangler dev
         run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &

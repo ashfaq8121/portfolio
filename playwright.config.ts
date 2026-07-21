@@ -42,10 +42,31 @@ export default defineConfig({
     // finish attaching listeners. Not yet root-caused. See TESTING.md.
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run the real built Worker before starting the tests — NOT `astro dev`.
+   * `astro dev` uses Vite's dev server, which does not correctly load
+   * Durable Object classes (see DECISIONS.md / the ContactRateLimiter
+   * investigation) — bindings show as present but calling them throws
+   * "no such actor class" at runtime. `npm run build` produces the real
+   * dist/server/entry.mjs (patched by scripts/fix-durable-objects.mjs to
+   * correctly export the DO class), and `wrangler dev` serves that exact
+   * build through the real Workers runtime, same as production.
+   *
+   * The `node -e "...rmSync..."` step in between clears .wrangler/state:
+   * `npm run build`'s internal Astro/Vite Miniflare sync step and this
+   * `wrangler dev` command can be backed by DIFFERENT bundled workerd
+   * binary versions, and both write local Durable Object SQLite state to
+   * the same .wrangler/state folder by default. If the build step writes
+   * that file first with one workerd's schema, then wrangler dev opens it
+   * with a different workerd version, you get a hard crash like
+   * "table _cf_ALARM has 3 columns but 2 values were supplied" instead of
+   * a clean startup. Deleting it right before wrangler dev starts avoidsS
+   * any cross-version conflict — cross-platform via Node so this works
+   * identically on Windows (local) and Linux (CI). */
   webServer: {
-    command: 'npm run dev',
+    command:
+      'npm run build && node -e "require(\'fs\').rmSync(\'.wrangler/state\', { recursive: true, force: true })" && npx wrangler dev --port 4321',
     url: 'http://localhost:4321',
     reuseExistingServer: !process.env.CI,
+    timeout: 180 * 1000, // build + wrangler cold start is slower than plain `astro dev`
   },
 });
