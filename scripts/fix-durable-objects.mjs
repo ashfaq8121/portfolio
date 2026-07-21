@@ -30,7 +30,7 @@
  * immediately instead of the rate limiter silently not working in
  * production.
  */
-import { readdirSync, readFileSync, appendFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, appendFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const CLASS_NAME = "ContactRateLimiter";
@@ -90,3 +90,49 @@ const importPath = "./" + relative(serverDir, foundFile).split("\\").join("/");
 
 appendFileSync(entryFile, `\nexport { ${CLASS_NAME} } from "${importPath}";\n`);
 console.log(`[fix-durable-objects] Patched entry.mjs -> re-exports ${CLASS_NAME} from ${importPath}`);
+
+// ── SQLite migration upgrade ─────────────────────────────────────────
+//
+// wrangler.toml deliberately keeps this class's migration as the OLD
+// "new_classes" format (not "new_sqlite_classes"). That's not a mistake:
+// Astro's own build step spins up a local Miniflare instance (via
+// @cloudflare/vite-plugin) to sanity-check bindings, and that local
+// check currently crashes outright ("Class extends value undefined")
+// the moment it sees a new_sqlite_classes migration for this class -
+// this is a real, narrow bug in that local tooling, confirmed by
+// reverting to new_classes making the crash disappear immediately.
+//
+// But Cloudflare's real deploy API requires new_sqlite_classes for any
+// NEW Durable Object class on the free plan (error code 10097) - it
+// will reject a deploy that uses the old format.
+//
+// Resolution: `wrangler deploy` doesn't read wrangler.toml directly in
+// this project - it reads the "redirected configuration" Astro
+// generates at dist/server/wrangler.json (confirmed in deploy logs:
+// "Using redirected Wrangler configuration ... dist\server\wrangler.json").
+// So we let the SOURCE wrangler.toml keep the old format (keeping local
+// `astro build` crash-free), and upgrade ONLY this generated deploy-time
+// copy to new_sqlite_classes right here, after build, before deploy.
+const wranglerJsonPath = join(serverDir, "wrangler.json");
+const wranglerConfig = JSON.parse(readFileSync(wranglerJsonPath, "utf-8"));
+let patchedMigration = false;
+
+for (const migration of wranglerConfig.migrations ?? []) {
+  if (Array.isArray(migration.new_classes) && migration.new_classes.includes(CLASS_NAME)) {
+    migration.new_classes = migration.new_classes.filter((c) => c !== CLASS_NAME);
+    migration.new_sqlite_classes = [...(migration.new_sqlite_classes ?? []), CLASS_NAME];
+    if (migration.new_classes.length === 0) delete migration.new_classes;
+    patchedMigration = true;
+  }
+}
+
+if (!patchedMigration) {
+  console.error(
+    `[fix-durable-objects] Could not find a "new_classes" migration entry for "${CLASS_NAME}" in ${wranglerJsonPath} to upgrade to new_sqlite_classes. ` +
+    `Deploy will likely fail with Cloudflare error 10097 (SQLite-backed classes required on the free plan) - failing the build on purpose.`
+  );
+  process.exit(1);
+}
+
+writeFileSync(wranglerJsonPath, JSON.stringify(wranglerConfig));
+console.log(`[fix-durable-objects] Patched dist/server/wrangler.json -> ${CLASS_NAME} migration upgraded to new_sqlite_classes for deploy`);

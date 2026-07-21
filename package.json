@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/fix-durable-objects.mjs", 
+    "build": "astro build && node scripts/fix-durable-objects.mjs",
     "preview": "wrangler dev",
     "lint": "eslint \"worker/src/**/*.ts\" --max-warnings 0",
     "typecheck": "tsc --noEmit",
@@ -19,6 +19,7 @@
     "astro": "^6.4.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.45.1",
     "@cloudflare/workers-types": "^4.0.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.1",
