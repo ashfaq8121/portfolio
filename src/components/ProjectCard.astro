@@ -158,7 +158,7 @@ const buttonId = `toggle-${slug}`;
   </div>
 </article>
 
-<script>
+<script is:inline nonce={Astro.locals.nonce}>
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll(".project-card").forEach((card) => {
       const button = card.querySelector(".card-toggle");
