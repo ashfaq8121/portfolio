@@ -254,7 +254,7 @@ const currentPath = Astro.url.pathname;
   }
 </style>
 
-<script>
+<script is:inline nonce={Astro.locals.nonce}>
   const btn = document.getElementById("menu-btn");
   const menu = document.getElementById("mobile-menu");
 
