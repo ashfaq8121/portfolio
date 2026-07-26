@@ -34,16 +34,21 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # Clear local DO SQLite state before starting wrangler dev — the
-      # build step's internal Astro/Vite Miniflare sync and this wrangler
-      # dev command can be backed by different bundled workerd versions,
-      # and both default to writing local DO state into the same
-      # .wrangler/state folder. Starting wrangler dev with stale state
-      # from a different workerd version causes a hard crash (SQLite
-      # schema mismatch) instead of a clean startup. See playwright.config.ts
-      # for the same fix applied to the E2E test server.
+      # Clear ONLY local Durable Object SQLite state before starting
+      # wrangler dev — scoped to .wrangler/state/v3/do, not the whole
+      # state folder. The build step's internal Astro/Vite Miniflare
+      # sync and this wrangler dev command can be backed by different
+      # bundled workerd versions, and both default to writing local DO
+      # state into the same folder; stale state from a mismatched
+      # version causes a hard crash (SQLite schema mismatch:
+      # "table _cf_ALARM has 3 columns but 2 values were supplied")
+      # instead of a clean startup. Wiping the WHOLE .wrangler/state
+      # folder (an earlier version of this step) also destroyed local
+      # D1 data as collateral damage — scoping to v3/do avoids that.
+      # See playwright.config.ts for the same fix applied to the E2E
+      # test server.
       - name: Clear stale local Durable Object state
-        run: rm -rf .wrangler/state
+        run: rm -rf .wrangler/state/v3/do
 
       - name: Start wrangler dev
         run: npx wrangler dev --port 4321 --local > wrangler.log 2>&1 &
